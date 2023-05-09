@@ -6,6 +6,7 @@ import download_whole_dynamodb_table
 import shutil
 import color_drawing
 
+#change
 
 
 s3 = boto3.resource('s3')
