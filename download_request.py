@@ -8,7 +8,7 @@ s3 = boto3.resource('s3')
 dynamodb = boto3.resource('dynamodb')
 
 #replace table name based on request
-table_name = 'BURN_Master_ImageCollections'
+table_name = 'DFU_Master_ImageCollections'
 table = dynamodb.Table(table_name)
 
 #get attributes from dynamodb
@@ -24,12 +24,12 @@ def get_attribute(table,guid,attr):
 
 
 def download_raw(table,raw_list,attrs):
-    fold = os.path.join("/Users/ziweishi/Documents", "phase3_msi")
-    os.makedirs(fold)
+    fold = os.path.join("/Users/ziweishi/Desktop", "check")
+    # os.makedirs(fold)
     for i in raw_list:
         name = get_attribute(table,i,"Bucket")
         folder = os.path.join(fold, i)
-        os.makedirs(folder)
+        # os.makedirs(folder)
         for j in attrs:
             try:
                 attr = get_attribute(table,i,j)
@@ -47,8 +47,6 @@ def download_raw(table,raw_list,attrs):
 
 
 
-
-
 # data = pd.read_excel("/Users/ziweishi/Documents/database/BURN_Master_ImageCollections.xlsx")
 # df1 = data[data["Status"]=="acquired"]
 # df1 = df1[df1["Tags"].isna()]
@@ -57,8 +55,8 @@ def download_raw(table,raw_list,attrs):
 # print(len(df1))
 
 
-list_df = pd.read_excel("/Users/ziweishi/Desktop/final_list.xlsx")
-list = list_df["guid"].to_list()
+# list_df = pd.read_excel("/Users/ziweishi/Desktop/final_list.xlsx")
+# list = list_df["guid"].to_list()
 
 # df = df1[[x not in list for x in df1['ImgCollGUID']]]
 #
@@ -74,6 +72,8 @@ list = list_df["guid"].to_list()
 #
 # df.to_excel("/Users/ziweishi/Desktop/sample.xlsx")
 
-attrs = ["Raw","Assessing"]
-
-download_raw(table,list,attrs)
+# list = ["c438d298-4e1b-409a-8e36-415d4f659d29"]
+#
+# attrs = ["PseudoColor","Assessing"]
+#
+# download_raw(table,list,attrs)
