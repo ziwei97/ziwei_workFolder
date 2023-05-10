@@ -51,32 +51,95 @@ table = dynamodb.Table(table_name)
 
 # df.to_excel("/Users/ziweishi/Desktop/epoc_all_mask_size.xlsx")
 
-df = pd.read_excel("/Users/ziweishi/Desktop/epoc_all_mask_size.xlsx",sheet_name="Sheet5")
-
-guid=df["ImgCollGUID"].to_list()
-file = df["file"].to_list()
-index=0
-
-for i in guid:
-    prefix = "DataScience/ePOC_All_Data_Request_2023-05-04/"
-    key = prefix+i+"/"+file[index]
-    s3.Object('spectralmd-datashare', key).delete()
-    index+=1
-    print(index)
-
-
-
-
-
-
-
-
-
+# df = pd.read_excel("/Users/ziweishi/Desktop/epoc_all_mask_size.xlsx",sheet_name="Sheet6")
+#
+# guid=df["ImgCollGUID"].to_list()
+# file = df["file"].to_list()
+# index=0
+#
+#
+# df = pd.read_excel("/Users/ziweishi/Desktop/file_check.xlsx",sheet_name="Sheet3")
+#
+# guid=df["ImgCollGUID"].to_list()
+# file = df["file"].to_list()
+# index=0
+#
+# for i in guid:
+#     prefix = "DataScience/ePOC_All_Data_Request_2023-05-04/"
+#     key = prefix+i+"/"+file[index]
+#     s3.Object('spectralmd-datashare', key).delete()
+#     index+=1
+#     print(index)
 
 
+#
 
+#
+# list = []
+# for i in guid:
+#     if i not in list:
+#         list.append(i)
+#
+# study = pd.read_excel("/Users/ziweishi/Desktop/BURN_Master_Study.xlsx")
+#
+#
+# study =study[study["ImgCollGUID"].isin(list)]
+#
+# study = study[["ImgCollGUID","FileName","S3_Location","UploadDate"]]
+#
+# study.to_excel("/Users/ziweishi/Desktop/Study.xlsx")
+#
+#
+# index=0
+# upload_date=[]
+# s3_location = []
+# for i in guid:
+#     subset = study[study["ImgCollGUID"]==i]
+#     name = file[index]
+#     sub = subset[subset["FileName"]==name]
+#
+#     try:
+#         date = sub["UploadDate"].iloc[0]
+#     except:
+#         date = np.nan
+#     try:
+#         s3_loc = sub["S3_Location"].iloc[0]
+#     except:
+#         s3_loc = np.nan
+#
+#     upload_date.append(date)
+#     s3_location.append(s3_loc)
+#     index+=1
+#     print(index)
+#
+# df["date"] = upload_date
+# df["s3_location"] = s3_location
 
-
+# df = pd.read_excel("/Users/ziweishi/Desktop/epoc_mask.xlsx")
+# guid=df["ImgCollGUID"].to_list()
+# file = df["file"].to_list()
+#
+# list = []
+# for i in guid:
+#     if i not in list:
+#         list.append(i)
+#
+#
+# index=0
+# num = []
+# for i in guid:
+#     name =file[index].split("_")
+#     if len(name) ==2:
+#         num.append(1)
+#     else:
+#         num.append(0)
+#
+#     index+=1
+#
+# df["num"] = num
+#
+#
+# df.to_excel("/Users/ziweishi/Desktop/epoc_mask1.xlsx")
 
 
 

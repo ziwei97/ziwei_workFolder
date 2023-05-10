@@ -165,6 +165,41 @@ def epoc_data_prepare(excel_path,attrs,prefix):
 
 
 
-path = "/Users/ziweishi/Desktop/epoc_summary.xlsx"
-prefix="DataScience/epoc_all_mask_2023-05-04/"
-epoc_data_prepare(path,["Raw","Assessing"],prefix)
+# path = "/Users/ziweishi/Desktop/epoc_summary.xlsx"
+prefix="DataScience/ePOC_All_Data_Request_2023-05-04/"
+# epoc_data_prepare(path,["Raw","Assessing"],prefix)
+
+list1 = """3a6edceb-13cb-4c5b-bb8f-b300ad81d422
+6f12db9a-16b6-493d-8683-0c0092b75dc2
+91a29a28-2871-4cc4-9fd3-2b96163686d2
+afc131e1-992e-43d5-8bbe-98c4af7337a3"""
+
+guid = list1.split("\n")
+attrs=["Mask"]
+
+table_name = 'BURN_Master_ImageCollections'
+table = dynamodb.Table(table_name)
+index=0
+for i in guid:
+
+    # subject = sub[index]
+    bucket = get_attribute(table, i, "Bucket")
+    for j in attrs:
+        try:
+            label = get_attribute(table, i, j)
+            for a in label:
+                a_source = a
+                copy_source = {
+                    'Bucket': bucket,
+                    'Key': a_source
+                }
+                a = a.split("/")[-1]
+                a_source_pseduo = prefix + i + "/" + a
+                s3.meta.client.copy(copy_source, 'spectralmd-datashare', a_source_pseduo)
+            print(index)
+        except:
+            # issue.append(i + " " + j + " " + "Missing")
+            print(str(index) + " " + i + " " + j)
+    index += 1
+
+
