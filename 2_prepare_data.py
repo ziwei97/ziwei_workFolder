@@ -169,12 +169,12 @@ def epoc_data_prepare(excel_path,attrs,prefix):
 prefix="DataScience/ePOC_All_Data_Request_2023-05-04/"
 # epoc_data_prepare(path,["Raw","Assessing"],prefix)
 
-list1 = """3a6edceb-13cb-4c5b-bb8f-b300ad81d422
-6f12db9a-16b6-493d-8683-0c0092b75dc2
-91a29a28-2871-4cc4-9fd3-2b96163686d2
-afc131e1-992e-43d5-8bbe-98c4af7337a3"""
 
-guid = list1.split("\n")
+df = pd.read_csv("/Users/ziweishi/Desktop/ePOC_ICGUID.csv")
+guid = df["ICGUID"].to_list()
+
+
+
 attrs=["Mask"]
 
 table_name = 'BURN_Master_ImageCollections'
