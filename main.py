@@ -21,35 +21,35 @@ table = dynamodb.Table(table_name)
 # sp = img.shape
 # print(sp)
 
-df = pd.read_excel("/Users/ziweishi/Desktop/file_check.xlsx",sheet_name="Sheet2")
+# df = pd.read_excel("/Users/ziweishi/Desktop/file_check.xlsx",sheet_name="Sheet2")
+#
+# guid = df["ImgCollGUID"].to_list()
+# file = df["file"].to_list()
 
-guid = df["ImgCollGUID"].to_list()
-file = df["file"].to_list()
-
-
-index = 0
-
-
-size=[]
-for i in guid:
-    s3_path = "DataScience/ePOC_All_Data_Request_2023-05-04/"
-    file_s3 = s3_path+i+"/"+file[index]
-    local_path = "/Users/ziweishi/Desktop/epoc_mask/"+i
-    if os.path.isdir(local_path) == False:
-        os.mkdir(local_path)
-    local_file = os.path.join(local_path,file[index])
-    s3.Bucket("spectralmd-datashare").download_file(file_s3, local_file)
-    index+=1
-    img = cv2.imread(local_file)
-    sp = img.shape
-    size.append(sp)
-    print(index)
-    print(sp)
-
-
-df["Size"] = size
-
-df.to_excel("/Users/ziweishi/Desktop/mask_size.xlsx")
+#
+# index = 0
+#
+#
+# size=[]
+# for i in guid:
+#     s3_path = "DataScience/ePOC_All_Data_Request_2023-05-04/"
+#     file_s3 = s3_path+i+"/"+file[index]
+#     local_path = "/Users/ziweishi/Desktop/epoc_mask/"+i
+#     if os.path.isdir(local_path) == False:
+#         os.mkdir(local_path)
+#     local_file = os.path.join(local_path,file[index])
+#     s3.Bucket("spectralmd-datashare").download_file(file_s3, local_file)
+#     index+=1
+#     img = cv2.imread(local_file)
+#     sp = img.shape
+#     size.append(sp)
+#     print(index)
+#     print(sp)
+#
+#
+# df["Size"] = size
+#
+# df.to_excel("/Users/ziweishi/Desktop/mask_size.xlsx")
 
 
 
@@ -183,3 +183,6 @@ df.to_excel("/Users/ziweishi/Desktop/mask_size.xlsx")
 # name = s["Raw"].iloc[0]
 
 
+a = 2-1-1
+
+print(a)

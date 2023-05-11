@@ -15,6 +15,14 @@ def parse_date(x):
         eval = np.nan
     return eval
 
+def parse_time(x):
+    try:
+        stamp = int(x) - 2209031999999999700
+        eval = str(pd.to_datetime(stamp).strftime('%d-%m-%Y %H:%M:%S'))
+    except:
+        eval = np.nan
+    return eval
+
 def fuzzy_date_match(date1, date2, day_range, date_format='%d-%m-%Y'):
     if not date1 or not date2:
         return '-'
@@ -77,10 +85,20 @@ def clean_dfu_db():
     guid = guid[guid["Status"] == "acquired"]
     guid = guid[guid["CreateTimeStamp"].notna()]
     guid["VisitDate"] = guid[["CreateTimeStamp"]].apply(lambda x: parse_date((x['CreateTimeStamp'])), axis=1)
+    guid["UTC_Time"] =  guid[["CreateTimeStamp"]].apply(lambda x: parse_time((x['CreateTimeStamp'])), axis=1)
 
-    sub = guid[['SubjectID', 'ImgCollGUID', 'VisitDate']]
+    sub = guid[['SubjectID', 'ImgCollGUID', 'VisitDate',"UTC_Time"]]
+    sub.to_excel("/Users/ziweishi/Desktop/file_check.xlsx")
+    list = sub["ImgCollGUID"].to_list()
+    time = sub["UTC_Time"].to_list()
+    guid_time = {}
+    index=0
+    for i in list:
+        guid_time[i]=time[index]
+        index+=1
 
-    return sub
+
+    return sub,guid_time
 
 
 
@@ -91,7 +109,8 @@ def time_table_transfer(update_date):
         os.mkdir(path)
 
     vt = pd.read_excel("/Users/ziweishi/Desktop/toyin_filtered.xlsx")
-    sub = clean_dfu_db()
+    db_info = clean_dfu_db()
+    sub = db_info[0]
     vt_sub = vt["SubjectID"].to_list()
     list_b = []
     time_order = []
@@ -127,7 +146,7 @@ def time_table_transfer(update_date):
             date_list = []
             if "none" not in str(x):
                 for y in sub_date:
-                    if fuzzy_date_match(x, y, 2, date_format='%d-%m-%Y') == True:
+                    if fuzzy_date_match(x, y, 1, date_format='%d-%m-%Y') == True:
                         if y not in date_list:
                             date_list.append(y)
                             matched_date.append(y)
@@ -208,10 +227,16 @@ def time_table_transfer(update_date):
 
 
     # output guid list
+    time_list=[]
+    time_info=db_info[1]
     list_file_name = str(update_date) + "_Guid_list.xlsx"
     list_final_path = os.path.join(path, list_file_name)
     final_guid = zip(subjectid_list,visitime_list,castor_date,capture_date,guid_final_list)
+    for i in guid_final_list:
+        time_utc = time_info[i]
+        time_list.append(time_utc)
     final_guid_df = pd.DataFrame(final_guid,columns=["SubjectID", "VisitTime","Castor_Date", "Capture_Date", "ImgCollGUID"])
+    final_guid_df["UTC_Time"]=time_list
     final_guid_df.to_excel(list_final_path)
     print("total matched guid num: " +str(len(guid_final_list)))
 
@@ -225,4 +250,4 @@ def time_table_transfer(update_date):
     return df_final
 
 
-time_table_transfer("20230508")
+time_table_transfer("20230510")
