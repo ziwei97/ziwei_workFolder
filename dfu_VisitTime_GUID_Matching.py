@@ -79,7 +79,6 @@ def fuzzy_date_match(date1, date2, day_range, date_format='%d-%m-%Y'):
 #         df_toyin[visit] = visit_date
 #     return df_toyin
 
-
 def clean_dfu_db(check_date):
     guid = download_whole_dynamodb_table.download_table('DFU_Master_ImageCollections')
     guid = guid[guid["StudyName"]=="DFU_SSP"]
