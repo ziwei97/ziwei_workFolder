@@ -116,6 +116,9 @@ def download_raw(table,raw_list,attrs,path):
 
 
 
+# raw_list=["50eb40be-1128-42ba-b4af-3a1b4bca9666"]
+# attrs=["Assessing","Raw","PseudoColor","FinalTruth","Mask"]
+# download_raw(table,raw_list,attrs,"/Users/ziweishi/Documents/demo")
 
 
 

@@ -4,12 +4,13 @@ import pandas as pd
 from datetime import datetime, timedelta
 import download_whole_dynamodb_table
 import numpy as np
+import toyin_castor_check
 
 
 
 def parse_date(x):
     try:
-        stamp = int(x) - 2209031999999999700
+        stamp = int(x) - 2209031999999999700 - 6*60*60*1000000000
         eval = str(pd.to_datetime(stamp).strftime('%d-%m-%Y'))
     except:
         eval = np.nan
@@ -17,7 +18,7 @@ def parse_date(x):
 
 def parse_time(x):
     try:
-        stamp = int(x) - 2209031999999999700
+        stamp = int(x) - 2209031999999999700- 6*60*60*1000000000
         eval = str(pd.to_datetime(stamp).strftime('%d-%m-%Y %H:%M:%S'))
     except:
         eval = np.nan
@@ -41,7 +42,7 @@ def fuzzy_date_match(date1, date2, day_range, date_format='%d-%m-%Y'):
     return False
 
 
-#
+
 # def change_format(date):
 #     i = str(date)
 #     if "." in i:
@@ -79,8 +80,9 @@ def fuzzy_date_match(date1, date2, day_range, date_format='%d-%m-%Y'):
 #     return df_toyin
 
 
-def clean_dfu_db():
+def clean_dfu_db(check_date):
     guid = download_whole_dynamodb_table.download_table('DFU_Master_ImageCollections')
+    guid = guid[guid["StudyName"]=="DFU_SSP"]
     guid = guid[['SubjectID', 'ImgCollGUID', 'CreateTimeStamp', 'Status']]
     guid = guid[guid["Status"] == "acquired"]
     guid = guid[guid["CreateTimeStamp"].notna()]
@@ -88,7 +90,6 @@ def clean_dfu_db():
     guid["UTC_Time"] =  guid[["CreateTimeStamp"]].apply(lambda x: parse_time((x['CreateTimeStamp'])), axis=1)
 
     sub = guid[['SubjectID', 'ImgCollGUID', 'VisitDate',"UTC_Time"]]
-    sub.to_excel("/Users/ziweishi/Desktop/file_check.xlsx")
     list = sub["ImgCollGUID"].to_list()
     time = sub["UTC_Time"].to_list()
     guid_time = {}
@@ -96,6 +97,10 @@ def clean_dfu_db():
     for i in list:
         guid_time[i]=time[index]
         index+=1
+
+    path ="/Users/ziweishi/Documents/DFU_regular_update/"+check_date+"/database"+"_"+check_date+".xlsx"
+    sub.to_excel(path)
+    print("total device collection num is: " + str(len(sub)))
 
 
     return sub,guid_time
@@ -108,8 +113,10 @@ def time_table_transfer(update_date):
     if os.path.isdir(path)==False:
         os.mkdir(path)
 
-    vt = pd.read_excel("/Users/ziweishi/Desktop/toyin_filtered.xlsx")
-    db_info = clean_dfu_db()
+    #step 1 return subject list
+    vt1 = toyin_castor_check.clean_track(update_date)
+    vt = vt1[0]
+    db_info = clean_dfu_db(update_date)
     sub = db_info[0]
     vt_sub = vt["SubjectID"].to_list()
     list_b = []
@@ -117,6 +124,8 @@ def time_table_transfer(update_date):
     visit_b = []
     time_match = []
 
+
+    #step 2 append castor date to subjects
     #timetable frame
     for i in vt_sub:
         for j in range(1, 13):
@@ -130,11 +139,11 @@ def time_table_transfer(update_date):
         time_order.append("none_match")
         visit_b.append("none_match")
 
-
     data = zip(list_b, time_order, visit_b)
     time_table = pd.DataFrame(data=data, columns=["SubjectID", "VisitTime", "Castor_Date"])
 
-    #match device and toyin list timetable
+
+    #step 3 append device date to subject+castor date
     for j in vt_sub:
         sub_set = sub[sub["SubjectID"] == j]
         time_set = time_table[time_table["SubjectID"] == j]
@@ -154,31 +163,33 @@ def time_table_transfer(update_date):
             if "none" in str(x):
                 for p in sub_date:
                     if p not in matched_date:
-                        date_none.append(p)
+                        if p not in date_none:
+                            date_none.append(p)
                 time_match.append(date_none)
     data1 = zip(list_b, time_order, visit_b,time_match)
     matched_timetable = pd.DataFrame(data=data1, columns=["SubjectID", "VisitTime", "Castor_Date","Match_Date"])
+    matched_timetable.to_excel("/Users/ziweishi/Downloads/check.xlsx")
 
-    #group guid table by sub+capture date(VisitDate)
+
+    #step 4 append guid to sub+castor+match device with key sub+device date
     sub_id = sub["SubjectID"].to_list()
     guid_list = sub["ImgCollGUID"].to_list()
     sub_visit = sub["VisitDate"].to_list()
     sub_cri = []
     for i in range(len(sub_id)):
-        date = sub_visit[i]
         cri = str(sub_id[i]) + " " + str(sub_visit[i])
         sub_cri.append(cri)
     data = zip(sub_cri, guid_list)
     df = pd.DataFrame(data=data, columns=["sub_time", "guid"])
     df1 = df.groupby('sub_time')['guid'].apply(list).reset_index(name='new')
 
-    # map guid with sub+capture date check key to toyin list
     list_sub = matched_timetable["SubjectID"].to_list()
     list_time1 = matched_timetable["Match_Date"].to_list()
     list_time=[]
     for i in list_time1:
         if len(i)>0:
             i = str(i)
+            # i = i.strip('][').split(',')
             i = i.replace("'", "")
             i = i.replace("[", "")
             i = i.replace("]", "")
@@ -200,10 +211,15 @@ def time_table_transfer(update_date):
     guid_final_list=[]
     capture_date = []
     castor_date=[]
+
+    num_list =[]
+    total_none_match=0
+
     for i in range(len(list_com)):
         list_guid_pic = []
         subjectid = list_b[i]
         visit_time = time_order[i]
+        num=0
         for j in list_com[i]:
             try:
                 sub_set = df1[df1["sub_time"] == j]
@@ -212,9 +228,14 @@ def time_table_transfer(update_date):
                 value = []
             if len(value) > 0:
                 for p in value:
-                    list_guid_pic.append(p)
+                    num+=1
+                    list_guid_pic.append(p) #add guid to sub+time key pair
         list_guid.append(list_guid_pic)
+        num_list.append(num)
+        if "none" in visit_time:
+            total_none_match+=num
 
+        #add guid to output matched guid file
         if "none" not in visit_time:
             for h in list_guid_pic:
                 subjectid_list.append(subjectid)
@@ -226,28 +247,57 @@ def time_table_transfer(update_date):
                 castor_date.append(visit_b[i])
 
 
+
+
+
+
     # output guid list
     time_list=[]
     time_info=db_info[1]
     list_file_name = str(update_date) + "_Guid_list.xlsx"
     list_final_path = os.path.join(path, list_file_name)
     final_guid = zip(subjectid_list,visitime_list,castor_date,capture_date,guid_final_list)
+
+    issue = vt1[1]
+    index=0
+    collection_type=[]
+    out_num=0
     for i in guid_final_list:
+        subject = subjectid_list[index]
+        castor_time=castor_date[index]
+        if subject in issue:
+            issue_list = issue[subject]
+            if castor_time in issue_list:
+                collection_type.append("out of 12 weeks")
+                out_num += 1
+            else:
+                collection_type.append(np.nan)
+        else:
+            collection_type.append(np.nan)
+
         time_utc = time_info[i]
         time_list.append(time_utc)
+        index+=1
+
+
     final_guid_df = pd.DataFrame(final_guid,columns=["SubjectID", "VisitTime","Castor_Date", "Capture_Date", "ImgCollGUID"])
-    final_guid_df["UTC_Time"]=time_list
+    final_guid_df["CST_Time"]=time_list
+    final_guid_df["duration"]= collection_type
     final_guid_df.to_excel(list_final_path)
     print("total matched guid num: " +str(len(guid_final_list)))
+    print("total non-matched guid num: " + str(total_none_match))
+    print("total out off 12 weeks guid num: " + str(out_num))
+
+
 
     # output match situation frame
     match_file_name = str(update_date) + "_matched_Guid.xlsx"
     match_final_path = os.path.join(path, match_file_name)
-    data_guid = zip(list_b, time_order, visit_b, time_match, list_guid)
-    df_final = pd.DataFrame(data=data_guid,columns=["SubjectID", "VisitTime", "Castor_Date", "Match_Device_Date", "ImgCollGUID"])
+    data_guid = zip(list_b, time_order, visit_b, time_match, num_list,list_guid)
+    df_final = pd.DataFrame(data=data_guid,columns=["SubjectID", "VisitTime", "Castor_Date", "Match_Device_Date","Num_GUID", "ImgCollGUID"])
     df_final.to_excel(match_final_path)
 
     return df_final
 
 
-time_table_transfer("20230510")
+time_table_transfer("20230515")

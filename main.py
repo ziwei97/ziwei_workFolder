@@ -6,11 +6,11 @@ from PIL import Image
 import cv2
 import boto3
 
-s3 = boto3.resource('s3')
-dynamodb = boto3.resource('dynamodb')
-
-table_name = 'BURN_Master_ImageCollections'
-table = dynamodb.Table(table_name)
+# s3 = boto3.resource('s3')
+# dynamodb = boto3.resource('dynamodb')
+#
+# table_name = 'BURN_Master_ImageCollections'
+# table = dynamodb.Table(table_name)
 
 
 #
@@ -183,6 +183,30 @@ table = dynamodb.Table(table_name)
 # name = s["Raw"].iloc[0]
 
 
-a = 2-1-1
+# study = pd.read_excel("/Users/ziweishi/Documents/database/BURN_Master_ImageCollections.xlsx")
+#
+# sub = study["SubjectID"].to_list()
+# phase = study["phase"].to_list()
+#
+# index=0
+#
+# info={}
+# for i in sub:
+#     if i not in info:
+#         info[i]=phase[index]
+#     index+=1
+#
+# print(info)
+#
+#
+# data = pd.DataFrame.from_dict(info,orient='index')
+# sublist=["106-005","108-001","108-002"]
+# data = study[study["SubjectID"].isin(sublist)]
+#
+# data = data[["ImgCollGUID","Status","Tags","SubjectID","UploadDate"]]
+# data.to_excel("/Users/ziweishi/Desktop/sub_info.xlsx")
 
-print(a)
+
+
+eval = np.nan
+print(str(eval))
