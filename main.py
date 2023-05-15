@@ -207,6 +207,23 @@ import boto3
 # data.to_excel("/Users/ziweishi/Desktop/sub_info.xlsx")
 
 
+path="/Users/ziweishi/Desktop/file_check.xlsx"
+df=pd.read_excel(path)
 
-eval = np.nan
-print(str(eval))
+subject = df["SubjectID"].to_list()
+phase = df["phase number"].to_list()
+
+list = {}
+
+
+a=0
+for i in subject:
+    if i not in list:
+        list[i]= phase[a]
+    a+=1
+
+
+data = pd.DataFrame.from_dict(list,orient='index')
+
+data.to_excel("/Users/ziweishi/Desktop/subject_check.xlsx")
+print(data)
