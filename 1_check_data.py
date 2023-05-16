@@ -135,7 +135,7 @@ def file_num_check(bucket_name, prefix_name):
 
 
 bucket_name = "spectralmd-datashare"
-prefix_name = "DataScience/ePOC_All_Data_Request_2023-05-04/"
+prefix_name = "DataScience/WAUSI_PartI_0516/"
 file_num_check(bucket_name,prefix_name)
 
 

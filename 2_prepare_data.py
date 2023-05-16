@@ -21,8 +21,6 @@ def get_attribute(table,guid,attr):
     return response["Item"][attr]
 
 
-#change test
-
 
 def return_attribute(table,guid,attr):
     table_set = table[table["ImgCollGUID"]==guid]
@@ -127,6 +125,9 @@ def wausi_data_prepare(excel_path,attrs,prefix):
         index += 1
         print(index)
     print(issue)
+    data = pd.DataFrame(data=issue,columns=["issue"])
+    data.to_excel("/Users/ziweishi/Documents/check.xlsx")
+
 
 
 
@@ -172,21 +173,57 @@ def epoc_data_prepare(excel_path,attrs,prefix):
 
 
 
+def simple_data_prepare(corpus,attrs,prefix):
+    guid = corpus.split("\n")
+    table_name = 'DFU_Master_ImageCollections'
+    table = dynamodb.Table(table_name)
 
+    index = 0
+    for i in guid:
+        # subject = sub[index]
+        # visit_time = vis[index]
+        bucket = get_attribute(table, i, "Bucket")
+        for j in attrs:
+
+            try:
+                label = get_attribute(table, i, j)
+                for a in label:
+
+                    a_source = a
+                    copy_source = {
+                        'Bucket': bucket,
+                        'Key': a_source
+                    }
+                    a = a.split("/")[-1]
+                    a_source_pseduo = prefix+ i + "/" + a
+                    dest_source = {
+                        'Bucket': 'spectralmd-datashare',
+                        'Key': a_source_pseduo
+                    }
+                    test_copy.s3_copy(copy_source,dest_source)
+                    # s3.meta.client.copy(copy_source, 'spectralmd-datashare', a_source_pseduo)
+            except:
+                print(i)
+        index += 1
+        print(index)
+
+
+attrs=["Raw","Mask"]
 prefix="DataScience/WAUSI_PartI_0516/"
 
 
-
-# df = pd.read_excel("/Users/ziweishi/Documents/DFU_regular_update/20230515/20230515_Guid_list.xlsx")
-
-attrs=["Raw","Mask"]
-
-path = "/Users/ziweishi/"
-wausi_data_prepare(path, attrs, prefix)
+corpus="58605b44-fdeb-41b9-83b6-56970d13365e"
+simple_data_prepare(corpus,attrs,prefix)
 
 
 
-#
+
+# path = "/Users/ziweishi/Documents/DFU_regular_update/20230516/20230516_Guid_list.xlsx"
+# wausi_data_prepare(path, attrs, prefix)
+
+
+
+
 # attrs=["Mask"]
 #
 # table_name = 'BURN_Master_ImageCollections'

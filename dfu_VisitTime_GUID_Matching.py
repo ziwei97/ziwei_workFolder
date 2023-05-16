@@ -82,22 +82,28 @@ def fuzzy_date_match(date1, date2, day_range, date_format='%d-%m-%Y'):
 def clean_dfu_db(check_date):
     guid = download_whole_dynamodb_table.download_table('DFU_Master_ImageCollections')
     guid = guid[guid["StudyName"]=="DFU_SSP"]
-    guid = guid[['SubjectID', 'ImgCollGUID', 'CreateTimeStamp', 'Status','Tags']]
+    guid = guid[['SubjectID', 'ImgCollGUID', 'CreateTimeStamp', 'Status','Tags','Mask','PseudoColor']]
     guid = guid[guid["Status"] == "acquired"]
     guid = guid[guid["CreateTimeStamp"].notna()]
     guid["VisitDate"] = guid[["CreateTimeStamp"]].apply(lambda x: parse_date((x['CreateTimeStamp'])), axis=1)
     guid["UTC_Time"] =  guid[["CreateTimeStamp"]].apply(lambda x: parse_time((x['CreateTimeStamp'])), axis=1)
 
-    sub = guid[['SubjectID', 'ImgCollGUID', 'VisitDate',"UTC_Time","Tags"]]
+    sub = guid[['SubjectID', 'ImgCollGUID', 'VisitDate',"UTC_Time","Tags","Mask","PseudoColor"]]
     list = sub["ImgCollGUID"].to_list()
     time = sub["UTC_Time"].to_list()
-    tags = sub["Tags"].to_list()
+    tag = sub["Tags"].to_list()
+    mask = sub["Mask"].to_list()
+    pseudo = sub["PseudoColor"].to_list()
     guid_time = {}
-    tag={}
+    tags={}
+    masks={}
+    pseudos={}
     index=0
     for i in list:
         guid_time[i]=time[index]
-        tag[i]=tags[index]
+        tags[i]=tag[index]
+        masks[i]=mask[index]
+        pseudos[i]=pseudo[index]
         index+=1
 
     path ="/Users/ziweishi/Documents/DFU_regular_update/"+check_date+"/database"+"_"+check_date+".xlsx"
@@ -105,7 +111,7 @@ def clean_dfu_db(check_date):
     print("total device collection num is: " + str(len(sub)))
 
 
-    return sub,guid_time,tag
+    return sub,guid_time,tags,masks,pseudos
 
 
 
@@ -257,6 +263,8 @@ def time_table_transfer(update_date):
     time_list=[]
     time_info=db_info[1]
     tag_info=db_info[2]
+    mask_info=db_info[3]
+    pseudo_info = db_info[4]
     list_file_name = str(update_date) + "_Guid_list.xlsx"
     list_final_path = os.path.join(path, list_file_name)
     final_guid = zip(subjectid_list,visitime_list,castor_date,capture_date,guid_final_list)
@@ -265,6 +273,8 @@ def time_table_transfer(update_date):
     index=0
     collection_type=[]
     tags_add=[]
+    mask_db=[]
+    pseudo_db=[]
     out_num=0
     for i in guid_final_list:
         subject = subjectid_list[index]
@@ -281,8 +291,10 @@ def time_table_transfer(update_date):
 
         time_utc = time_info[i]
         time_list.append(time_utc)
-        tag = tag_info[i]
-        tags_add.append(tag)
+        tag_id = tag_info[i]
+        tags_add.append(tag_id)
+        mask_db.append(mask_info[i])
+        pseudo_db.append(pseudo_info[i])
 
         index+=1
 
@@ -291,6 +303,8 @@ def time_table_transfer(update_date):
     final_guid_df["CST_Time"]=time_list
     final_guid_df["12 Weeks Check"]= collection_type
     final_guid_df["Tags"]=tags_add
+    final_guid_df["Mask"]=mask_db
+    final_guid_df["PseudoColor"]=pseudo_db
     final_guid_df.to_excel(list_final_path)
     print("total matched guid num: " +str(len(guid_final_list)))
     print("total non-matched guid num: " + str(total_none_match))
