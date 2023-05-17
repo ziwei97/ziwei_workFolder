@@ -21,8 +21,6 @@ def get_attribute(table,guid,attr):
     )
     return response["Item"][attr]
 
-
-
 def return_attribute(table,guid,attr):
     table_set = table[table["ImgCollGUID"]==guid]
     if attr =="Bucket":
@@ -34,8 +32,6 @@ def return_attribute(table,guid,attr):
         value = value.replace(" ", "")
         value = value.split(",")
     return value
-
-
 
 def wasp_data_prepare(excel_path,attrs,prefix):
     df = pd.read_excel(excel_path)
@@ -67,7 +63,6 @@ def wasp_data_prepare(excel_path,attrs,prefix):
         index += 1
         print(index)
     print(issue)
-
 
 def wausi_data_prepare(excel_path,attrs,prefix):
 
@@ -115,8 +110,6 @@ def wausi_data_prepare(excel_path,attrs,prefix):
     data = pd.DataFrame(data=issue,columns=["issue"])
     data.to_excel("/Users/ziweishi/Documents/check.xlsx")
 
-
-
 def epoc_data_prepare(excel_path,attrs,prefix):
 
     table_name = 'BURN_Master_ImageCollections'
@@ -154,13 +147,10 @@ def epoc_data_prepare(excel_path,attrs,prefix):
 
     # print(issue)
 
-
-
-
 def simple_data_prepare(corpus,attrs,prefix):
-    # guid = corpus.split("\n")
+    guid = corpus.split("\n")
     index = 0
-    for i in corpus:
+    for i in guid:
         bucket = get_attribute(table, i, "Bucket")
         for j in attrs:
             try:
@@ -185,7 +175,25 @@ def simple_data_prepare(corpus,attrs,prefix):
         print(index)
 
 
-# attrs=["Raw","Mask"]
-# prefix="DataScience/WAUSI_PartI_0516/"
+
+attrs=["Raw","Mask"]
+prefix="DataScience/WAUSI_PartI_0516/"
+
+path="/Users/ziweishi/Documents/DFU_regular_update/20230516/20230516_Guid_list.xlsx"
+wausi_data_prepare(path,attrs,prefix)
 
 
+
+
+
+
+
+
+
+# cor="""7b3c0b74-14af-4363-8828-85b1e5756ad1
+# e0973c9e-8022-43d5-8f07-5658300c6041
+# 0b65fcf8-5a32-44f0-9e54-79487461a04f
+# d77c33e7-f088-42e0-851a-a66863cb7339
+# 5f7b3f3f-8551-489e-b48a-49fe70d64cf4"""
+
+# simple_data_prepare(cor,attrs,prefix)
