@@ -270,14 +270,18 @@ def time_table_transfer(update_date):
     final_guid = zip(subjectid_list,visitime_list,castor_date,capture_date,guid_final_list)
 
     issue = vt1[1]
+    status = vt1[2]
     index=0
     collection_type=[]
     tags_add=[]
     mask_db=[]
     pseudo_db=[]
+    status_final=[]
     out_num=0
     for i in guid_final_list:
         subject = subjectid_list[index]
+        sta = status[subject]
+        status_final.append(sta)
         castor_time=castor_date[index]
         if subject in issue:
             issue_list = issue[subject]
@@ -300,6 +304,7 @@ def time_table_transfer(update_date):
 
 
     final_guid_df = pd.DataFrame(final_guid,columns=["SubjectID", "VisitTime","Castor_Date", "Capture_Date", "ImgCollGUID"])
+    final_guid_df["Status"] = status_final
     final_guid_df["CST_Time"]=time_list
     final_guid_df["12 Weeks Check"]= collection_type
     final_guid_df["Tags"]=tags_add
@@ -322,4 +327,4 @@ def time_table_transfer(update_date):
     return df_final
 
 
-time_table_transfer("20230516")
+time_table_transfer("20230522")

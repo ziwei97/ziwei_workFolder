@@ -9,7 +9,7 @@ import test_copy
 s3 = boto3.resource('s3')
 dynamodb = boto3.resource('dynamodb')
 
-table_name = 'DFU_Master_ImageCollections'
+table_name = 'BURN_Master_ImageCollections'
 table = dynamodb.Table(table_name)
 
 
@@ -34,7 +34,10 @@ def return_attribute(table,guid,attr):
     return value
 
 def wasp_data_prepare(excel_path,attrs,prefix):
+    table_name = 'DFU_Master_ImageCollections'
+    table = dynamodb.Table(table_name)
     df = pd.read_excel(excel_path)
+    df = df[df["Sequence"]==0]
     guid = df["ImgCollGUID"].to_list()
     sub = df["SubjectID"].to_list()
     visit = df["Sequence"].to_list()
@@ -45,57 +48,77 @@ def wasp_data_prepare(excel_path,attrs,prefix):
         visit_time = visit[index]
         bucket = get_attribute(table, i, "Bucket")
         for j in attrs:
-            try:
-                label = get_attribute(table, i, j)
-                for a in label:
-                    print(a)
-                    a_source = a
-                    copy_source = {
-                        'Bucket': bucket,
-                        'Key': a_source
-                    }
-                    a = a.split("/")[-1]
-                    a_source_pseduo = prefix + subject + "/" + "SV" + str(
-                        visit_time) + "/" + i + "/" + a
-                    s3.meta.client.copy(copy_source, 'spectralmd-datashare', a_source_pseduo)
-            except:
-                issue.append(i + " " + j + " " + "Missing")
+            if j=="PseudoColor":
+                try:
+                    label = get_attribute(table, i, j)
+                    for a in label:
+                        a_source = a
+                        copy_source = {
+                            'Bucket': bucket,
+                            'Key': a_source
+                        }
+                        a = a.split("/")[-1]
+                        a_source_pseduo = prefix + subject + "/" + "SV" + str(
+                            visit_time) + "/" + i + "/" + a
+                        dest_source={
+                            'Bucket': 'spectralmd-datashare',
+                            'Key': a_source_pseduo
+                        }
+                        if "PseudoColor.tif" in a:
+                            test_copy.s3_copy(copy_source, dest_source)
+                            # s3.meta.client.copy(copy_source, 'spectralmd-datashare', a_source_pseduo)
+                except:
+                    issue.append(i + " " + j + " " + "Missing")
+                    print(i + " " + j + " " + "Missing")
+            else:
+                try:
+                    label = get_attribute(table, i, j)
+                    for a in label:
+                        a_source = a
+                        copy_source = {
+                            'Bucket': bucket,
+                            'Key': a_source
+                        }
+                        a = a.split("/")[-1]
+                        a_source_pseduo = prefix + subject + "/" + "SV" + str(
+                            visit_time) + "/" + i + "/" + a
+                        dest_source = {
+                            'Bucket': 'spectralmd-datashare',
+                            'Key': a_source_pseduo
+                        }
+                        test_copy.s3_copy(copy_source, dest_source)
+                        # s3.meta.client.copy(copy_source, 'spectralmd-datashare', a_source_pseduo)
+                except:
+                    issue.append(i + " " + j + " " + "Missing")
+                    print(i + " " + j + " " + "Missing")
         index += 1
         print(index)
     print(issue)
 
 def wausi_data_prepare(excel_path,attrs,prefix):
-
     table_name = 'DFU_Master_ImageCollections'
     table = dynamodb.Table(table_name)
-
     df = pd.read_excel(excel_path)
     guid = df["ImgCollGUID"].to_list()
-    # sub = df["SubjectID"].to_list()
-    # vis = df["VisitTime"].to_list()
-
+    sub = df["SubjectID"].to_list()
+    vis = df["VisitTime"].to_list()
     issue = []
-
-
     index = 0
     for i in guid:
-        # subject = sub[index]
-        # visit_time = vis[index]
+        subject = sub[index]
+        visit_time = vis[index]
         bucket = get_attribute(table, i, "Bucket")
         for j in attrs:
-
             try:
                 label = get_attribute(table, i, j)
-
                 for a in label:
-
                     a_source = a
                     copy_source = {
                         'Bucket': bucket,
                         'Key': a_source
                     }
                     a = a.split("/")[-1]
-                    a_source_pseduo = prefix+ i + "/" + a
+                    a_source_pseduo = prefix+subject+"/"+visit_time+"/"+ i + "/" + a
                     dest_source = {
                         'Bucket': 'spectralmd-datashare',
                         'Key': a_source_pseduo
@@ -104,17 +127,14 @@ def wausi_data_prepare(excel_path,attrs,prefix):
                     # s3.meta.client.copy(copy_source, 'spectralmd-datashare', a_source_pseduo)
             except:
                 issue.append(i + " " + j + " " + "Missing")
+
+                print(i + " " + j + " " + "Missing")
         index += 1
         print(index)
-    print(issue)
-    data = pd.DataFrame(data=issue,columns=["issue"])
-    data.to_excel("/Users/ziweishi/Documents/check.xlsx")
 
 def epoc_data_prepare(excel_path,attrs,prefix):
-
     table_name = 'BURN_Master_ImageCollections'
     table = dynamodb.Table(table_name)
-
     df = pd.read_excel(excel_path)
     guid = df["ImgCollGUID"].to_list()
     # sub = df["SubjectID"].to_list()
@@ -138,13 +158,18 @@ def epoc_data_prepare(excel_path,attrs,prefix):
                     }
                     a = a.split("/")[-1]
                     a_source_pseduo = prefix + i + "/" + a
-                    s3.meta.client.copy(copy_source, 'spectralmd-datashare', a_source_pseduo)
-                print(index)
+                    dest_source = {
+                        'Bucket': 'spectralmd-datashare',
+                        'Key': a_source_pseduo
+                    }
+                    test_copy.s3_copy(copy_source, dest_source)
+                    # s3.meta.client.copy(copy_source, 'spectralmd-datashare', a_source_pseduo)
+
             except:
                 # issue.append(i + " " + j + " " + "Missing")
                 print(str(index)+" "+i+" "+j)
         index += 1
-
+        print(index)
     # print(issue)
 
 def simple_data_prepare(corpus,attrs,prefix):
@@ -174,26 +199,45 @@ def simple_data_prepare(corpus,attrs,prefix):
         index += 1
         print(index)
 
+def simple_data_upload(corpus,folder,prefix):
+    guid = corpus.split("\n")
+    index=0
+    for i in guid:
+        print(i)
+        name = "Mask_"+i+".png"
+        local_file_path = folder+name
+        s3_file_path = prefix+"Mask_"+i+".png"
+        # s3.Object('spectralmd-datashare', s3_file_path).delete()
+        s3.Bucket("spectralmd-datashare").upload_file(local_file_path, s3_file_path)
+        index+=1
+        print(index)
 
 
-attrs=["Raw","Mask"]
-prefix="DataScience/WAUSI_PartI_0516/"
 
-path="/Users/ziweishi/Documents/DFU_regular_update/20230516/20230516_Guid_list.xlsx"
-wausi_data_prepare(path,attrs,prefix)
+def folder_data_upload(excel_path,folder):
+    df = pd.read_excel(excel_path)
+    guid = df["GUID"].to_list()
+    index = 0
+    for i in guid:
+        name = "Mask_" + i + ".png"
+        local_file = folder + name
+        bucket = download.get_attribute(table, i, "Bucket")
+        try:
+            s3_file_path = "Mask/" + name
+            s3.Bucket(bucket).upload_file(local_file, s3_file_path)
+        except:
+            print(i)
+        print(bucket + " " + i)
+        index += 1
+
+
+if __name__ == "__main__":
+    attrs=["PseudoColor","Assessing","Mask"]
+    prefix="DataScience/WAUSI_SV0_0525/"
+    path="/Users/ziweishi/Documents/DFU_regular_update/20230522/20230522_Guid_list.xlsx"
+    wausi_data_prepare(path,attrs,prefix)
 
 
 
 
 
-
-
-
-
-# cor="""7b3c0b74-14af-4363-8828-85b1e5756ad1
-# e0973c9e-8022-43d5-8f07-5658300c6041
-# 0b65fcf8-5a32-44f0-9e54-79487461a04f
-# d77c33e7-f088-42e0-851a-a66863cb7339
-# 5f7b3f3f-8551-489e-b48a-49fe70d64cf4"""
-
-# simple_data_prepare(cor,attrs,prefix)

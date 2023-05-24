@@ -14,6 +14,7 @@ def clean_track(check_date):
     def change_format(date):
 
         i = str(date)
+        print(i)
         try:
             if "." in i:
                 i = datetime.strptime(i, "%m.%d.%y").strftime("%d-%m-%Y")
@@ -35,8 +36,10 @@ def clean_track(check_date):
         return i
 
     for i in range(1, 13):
+
         if i ==1:
             visit = "SV_" + str(i) + "_Date"
+
             to_vis = "BSV/SV1"
             column.append(visit)
             date_time_list = []
@@ -50,6 +53,7 @@ def clean_track(check_date):
             df_toyin[visit] = visit_date
         else:
             visit = "SV_" + str(i) + "_Date"
+
             to_vis = "SV" + str(i)
             column.append(visit)
             date_time_list = []
@@ -67,20 +71,34 @@ def clean_track(check_date):
 
 
     df_toyin["Data Type"] = toyin["Data Type"]
-    status = ["Completed","Completed (LTF)"]
+    status = ["Completed","Completed (LTF)","Withdrawn (SAE)"]
     df_toyin = df_toyin[df_toyin["status"].isin(status)]
     df_toyin = df_toyin[df_toyin["Data Type"]=="Training data"]
 
     issue ={}
     issue["202-018"]=["09-11-2022","21-11-2022"]
+    issue["202-020"] = ["22-11-2022"]
     issue["202-023"] = ["21-12-2022"]
     issue["202-029"] = ["30-01-2022"]
     issue["202-030"] = ["24-01-2023","31-01-2023"]
+
+
+    subject_list = df_toyin["SubjectID"].to_list()
+    status_list = df_toyin["status"].to_list()
+
+    sub_sta ={}
+    index=0
+    for i in subject_list:
+        sub_sta[i] = status_list[index]
+        index+=1
 
 
 
     path = "/Users/ziweishi/Documents/DFU_regular_update/"+check_date+"/toyin_filtered.xlsx"
     df_toyin.to_excel(path)
 
-    return df_toyin,issue
+    return df_toyin,issue,sub_sta
 
+
+if __name__ == "__main__":
+    clean_track("2022065")

@@ -25,7 +25,12 @@ def list_s3(bucket_name,prefix_name) ->list :
         key = object_summary.key
         if key != ".DS_Store":
             s3_address.append(key)
+
     return s3_address
+
+
+
+
 
 def structure_initial(type_num):
     # prompt = """Choose File Structure: \n1. SubjectID/SV/GUID/File \n2. SubjectID/GUID/File \n3. SubjectID/Wound/GUID/File \n4. GUID/File\nYour Choice: """
@@ -134,11 +139,6 @@ def file_num_check(bucket_name, prefix_name):
 
 
 
-bucket_name = "spectralmd-datashare"
-prefix_name = "DataScience/WAUSI_PartI_0516/"
-file_num_check(bucket_name,prefix_name)
-
-
 
 #Part 2: S3 bucket dataset Image Quality Check
 
@@ -151,12 +151,13 @@ def download_image_check(bucket_name,prefix_name):
         key_list = i.split("/")
         file = key_list[-1]
         guid = key_list[-2]
-        if ".png" in file or file[0:4]=="Pseu":
+        if file[0:4]=="Mask":
             file_list.append(i)
             guid_list.append(guid)
     index = 0
     path = "/Users/ziweishi/Desktop/data_check"
-    os.mkdir(path)
+    if os.path.isdir(path)==False:
+        os.mkdir(path)
     for i in file_list:
         id = guid_list[index]
         guid_path = os.path.join(path,id)
@@ -166,7 +167,7 @@ def download_image_check(bucket_name,prefix_name):
         file_path = os.path.join(guid_path,file_name)
         s3.Bucket(bucket_name).download_file(i, file_path)
         index+=1
-        print(index+"/"+len(guid_list))
+        print(str(index)+"/"+str(len(guid_list)))
 
 
 #Part 3: Change Wrong Final Truth color and replace them in S3 data set and S3 database.
@@ -187,3 +188,8 @@ def replace_reupload_truth(folder_path,guid,prefix):
     wound = str(download.get_attribute(table,guid,"Wound"))
     s3_path = prefix+subject+"/"+wound+"/"+guid+"/"+file_name
     s3.Bucket("spectralmd-datashare").upload_file(local_file_path, s3_path)
+
+if __name__ == "__main__":
+    bucket_name = "spectralmd-datashare"
+    prefix_name = "DataScience/WAUSI_SV0_0525/"
+    file_num_check(bucket_name, prefix_name)

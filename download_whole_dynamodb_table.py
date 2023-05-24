@@ -91,4 +91,5 @@ def download_table(table_name):
 
     return df
 
-
+#
+# download_table("BURN_Master_ImageCollections")

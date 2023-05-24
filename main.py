@@ -6,8 +6,8 @@ from PIL import Image
 import cv2
 import boto3
 
-# s3 = boto3.resource('s3')
-# dynamodb = boto3.resource('dynamodb')
+s3 = boto3.resource('s3')
+dynamodb = boto3.resource('dynamodb')
 #
 # table_name = 'BURN_Master_ImageCollections'
 # table = dynamodb.Table(table_name)
@@ -52,16 +52,24 @@ import boto3
 # df.to_excel("/Users/ziweishi/Desktop/mask_size.xlsx")
 
 
+key = "DataScience/WAUSI_SV0_0522/205-002/SV_1_Date/"
+s3.Object('spectralmd-datashare', key).delete()
 
 
-# df = pd.read_excel("/Users/ziweishi/Desktop/epoc_all_mask_size.xlsx",sheet_name="Sheet2")
+# df = pd.read_excel("/Users/ziweishi/Downloads/WASP_Info.xlsx")
 #
+# df = df[df["Sequence"]==0]
+#
+# print(len(df))
+#
+# df.to_excel("/Users/ziweishi/Downloads/WASP_SV0_0522.xlsx")
+
 # guid=df["ImgCollGUID"].to_list()
 # file = df["file"].to_list()
 # index=0
 #
 # for i in guid:
-#     prefix = "DataScience/ePOC_All_Data_Request_2023-05-04/"
+#     prefix = "DataScience/WAUSI_PartI_0516/"
 #     key = prefix+i+"/"+file[index]
 #     s3.Object('spectralmd-datashare', key).delete()
 #     index+=1
@@ -205,25 +213,25 @@ import boto3
 #
 # data = data[["ImgCollGUID","Status","Tags","SubjectID","UploadDate"]]
 # data.to_excel("/Users/ziweishi/Desktop/sub_info.xlsx")
-
-
-path="/Users/ziweishi/Desktop/file_check.xlsx"
-df=pd.read_excel(path)
-
-subject = df["SubjectID"].to_list()
-phase = df["phase number"].to_list()
-
-list = {}
-
-
-a=0
-for i in subject:
-    if i not in list:
-        list[i]= phase[a]
-    a+=1
-
-
-data = pd.DataFrame.from_dict(list,orient='index')
-
-data.to_excel("/Users/ziweishi/Desktop/subject_check.xlsx")
-print(data)
+#
+#
+# path="/Users/ziweishi/Desktop/file_check.xlsx"
+# df=pd.read_excel(path)
+#
+# subject = df["SubjectID"].to_list()
+# phase = df["phase number"].to_list()
+#
+# list = {}
+#
+#
+# a=0
+# for i in subject:
+#     if i not in list:
+#         list[i]= phase[a]
+#     a+=1
+#
+#
+# data = pd.DataFrame.from_dict(list,orient='index')
+#
+# data.to_excel("/Users/ziweishi/Desktop/subject_check.xlsx")
+# print(data)
