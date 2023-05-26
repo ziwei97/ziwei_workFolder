@@ -91,5 +91,8 @@ def download_table(table_name):
 
     return df
 
-#
-# download_table("BURN_Master_ImageCollections")
+if __name__ == "__main__":
+    dfu = download_table("DFU_Master_ImageCollections")
+    final = dfu[dfu["PseudoColor"].isna()]
+    final = final[["ImgCollGUID","Bucket","Status","SubjectID","PseudoColor","Raw","Mask"]]
+    final.to_excel("/Users/ziweishi/Desktop/Missing_dfu.xlsx")
