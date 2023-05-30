@@ -327,4 +327,5 @@ def time_table_transfer(update_date):
     return df_final
 
 
-time_table_transfer("20230522")
+if __name__ == "__main__":
+    time_table_transfer("20230530")

@@ -29,27 +29,28 @@ def download_raw(table,raw_list,attrs,path):
     index=1
     error_list=[]
     fold = path
-    os.makedirs(fold)
     # if os.path.isdir(fold) == True:
     #     os.remove(fold)
+    os.makedirs(fold)
     # id_list=[]
     # size_list=[]
     # mask_list=[]
     for i in raw_list:
         print(index)
         name = get_attribute(table,i,"Bucket")
-        subject = get_attribute(table, i, "SubjectID")
-        wound = get_attribute(table, i, "Wound")
-        sub_folder = os.path.join(fold,subject)
-        if os.path.isdir(sub_folder) == False:
-            os.mkdir(sub_folder)
+        # subject = get_attribute(table, i, "SubjectID")
+        # wound = get_attribute(table, i, "Wound")
+        # sub_folder = os.path.join(fold,subject)
+        guid_folder = os.path.join(fold,i)
+        if os.path.isdir(guid_folder) == False:
+            os.mkdir(guid_folder)
 
-        wound_folder = os.path.join(sub_folder,wound)
-        if os.path.isdir(wound_folder) == False:
-            os.mkdir(wound_folder)
+        # wound_folder = os.path.join(sub_folder,wound)
+        # if os.path.isdir(wound_folder) == False:
+        #     os.mkdir(wound_folder)
 
-        guid_folder = os.path.join(wound_folder,i)
-        os.mkdir(guid_folder)
+        # guid_folder = os.path.join(wound_folder,i)
+        # os.mkdir(guid_folder)
 
         for j in attrs:
             try:
@@ -131,13 +132,13 @@ if __name__ == "__main__":
     # final = final[final["Status"]=="acquired"]
     # final.to_excel("/Users/ziweishi/Documents/doctor_truth.xlsx")
 
-    raw_list ="ccb39555-98d3-4890-919c-9cdc67d0a916"
+    raw_list ="df975f8f-50eb-40f8-b5d0-dc786c3b7cd2"
     raw_list = raw_list.split("\n")
-    attrs = ["PseudoColor","Assessing"]
+    attrs = ["Mask"]
 
-    table_name = 'DFU_Master_ImageCollections'
+    table_name = 'BURN_Master_ImageCollections'
     table = dynamodb.Table(table_name)
-    download_raw(table, raw_list, attrs, "/Users/ziweishi/Documents/wausi")
+    download_raw(table, raw_list, attrs, "/Users/ziweishi/Documents/MASK")
 
 
 

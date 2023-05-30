@@ -12,9 +12,8 @@ def clean_track(check_date):
     column = ["SubjectID"]
 
     def change_format(date):
-
         i = str(date)
-        print(i)
+
         try:
             if "." in i:
                 i = datetime.strptime(i, "%m.%d.%y").strftime("%d-%m-%Y")

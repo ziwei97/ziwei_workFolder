@@ -79,3 +79,13 @@ def color_convert(truth_path,new_file_path):
 #     new_truth_path = os.path.join(guid_path,new_file_name)
 #     color_convert(truth_path,truth_path)
 #     index+=1
+
+
+
+
+def fix_colors(mask):
+    # Fix colors from LabelYourData to correct colorKey
+
+    r = mask[:, :, 0]
+    g = mask[:, :, 1]
+    b = mask[:, :, 2]

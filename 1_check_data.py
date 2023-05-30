@@ -189,6 +189,27 @@ def replace_reupload_truth(folder_path,guid,prefix):
     s3_path = prefix+subject+"/"+wound+"/"+guid+"/"+file_name
     s3.Bucket("spectralmd-datashare").upload_file(local_file_path, s3_path)
 
+
+
+
+def replace_mask(folder_path,guid,prefix):
+    table = dynamodb.Table("BURN_Master_ImageCollections")
+    final_turth1 = download.get_attribute(table,guid,"FinalTruth")
+    final_turth = ', '.join(final_turth1)
+    file_name = final_turth.split("/")[-1]
+    print(file_name)
+    bucket = download.get_attribute(table,guid,"Bucket")
+
+    local_guid_path = os.path.join(folder_path,guid)
+    local_file_path = os.path.join(local_guid_path,file_name)
+    print(local_file_path)
+    color_drawing.color_convert(local_file_path,local_file_path)
+    s3.Bucket(bucket).upload_file(local_file_path, final_turth)
+    subject = download.get_attribute(table,guid,"SubjectID")
+    wound = str(download.get_attribute(table,guid,"Wound"))
+    s3_path = prefix+subject+"/"+wound+"/"+guid+"/"+file_name
+    s3.Bucket("spectralmd-datashare").upload_file(local_file_path, s3_path)
+
 if __name__ == "__main__":
     bucket_name = "spectralmd-datashare"
     prefix_name = "DataScience/WAUSI_SV0_0525/"
