@@ -132,13 +132,13 @@ if __name__ == "__main__":
     # final = final[final["Status"]=="acquired"]
     # final.to_excel("/Users/ziweishi/Documents/doctor_truth.xlsx")
 
-    raw_list ="df975f8f-50eb-40f8-b5d0-dc786c3b7cd2"
+    raw_list ="19f80dc3-0a82-4554-8cc8-81e370103024"
     raw_list = raw_list.split("\n")
     attrs = ["Mask"]
 
     table_name = 'BURN_Master_ImageCollections'
     table = dynamodb.Table(table_name)
-    download_raw(table, raw_list, attrs, "/Users/ziweishi/Documents/MASK")
+    download_raw(table, raw_list, attrs, "/Users/ziweishi/Documents/MASK_convert")
 
 
 

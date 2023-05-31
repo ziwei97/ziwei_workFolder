@@ -26,10 +26,10 @@ def OverlayMask(path):
                      'other': [255, 255, 255]}
 
     SageMaker_colorKeyGT = {'Background': [188, 189, 34],
-                            'Viable': [153, 102, 51],
+                            'Viable': [140, 105, 67],
                             'First_Degree': [233, 181, 199],
                             'Shallow_Second_Degree': [182, 178, 79],
-                            'Deep_Second_Degree': [255, 138, 79],
+                            'Deep_Second_Degree': [225, 138, 79],
                             'Third_Degree': [214, 39, 40],
                             'Silvadene': [127, 127, 127],
                             'Woundbed_Epinephrine': [140, 86, 75],
@@ -58,26 +58,60 @@ def OverlayMask(path):
 
 
 if __name__ == "__main__":
-    table_name = 'BURN_Master_ImageCollections'
-    table = dynamodb.Table(table_name)
-
-    df_guid = pd.read_excel("/Users/ziweishi/Desktop/phase5.xlsx")
-    guid_list =df_guid["ImgCollGUID"].to_list()
-
-    index=0
-    for i in guid_list:
-        print(index)
-        fold = "/Users/ziweishi/Documents/MASK_convert/"
-        path = fold+i+"/Mask_"+i+".png"
-        OverlayMask(path)
-        bucket =get_attribute(table,i,"Bucket")
-        s3_path = "Mask/Mask_"+i+".png"
-        print(s3_path)
-        # s3.Bucket(bucket).upload_file(path, s3_path)
-        index+=1
-
-
-
-
+    # table_name = 'BURN_Master_ImageCollections'
+    # table = dynamodb.Table(table_name)
+    #
+    # df_guid = pd.read_excel("/Users/ziweishi/Desktop/phase5.xlsx")
+    # guid_list =df_guid["ImgCollGUID"].to_list()
+    # attrs=["Mask"]
+    # download_raw(table,guid_list,attrs,"/Users/ziweishi/Desktop/Burn_Mask")
+    #
+    # index=0
+    # for i in guid_list:
+    #     print(index)
+    #     fold = "/Users/ziweishi/Documents/MASK_convert/"
+    #     path = fold+i+"/Mask_"+i+".png"
+    #     OverlayMask(path)
+    #     bucket =get_attribute(table,i,"Bucket")
+    #     s3_path = "Mask/Mask_"+i+".png"
+    #     # print(s3_path)
+    #     # s3.Bucket(bucket).upload_file(path, s3_path)
+    #     index+=1
 
 
+    # Create a uint8 array
+    # uint8_array = np.array([10, 20, 30], dtype=np.uint8)
+    #
+    # # Convert uint8 array to int
+    # int_array = uint8_array.astype(int)
+    #
+    # # Print the int array
+    # print(int_array)
+
+    img = Image.open("/Users/ziweishi/Downloads/Mask_0059a22c-2ecc-4c9b-82df-aa34b868f353.png")
+    image_array = np.array(img)
+
+    # 获取图像的形状（高度、宽度、通道数）
+    height, width, channels = image_array.shape
+
+    # 创建一个空数组来存储RGB颜色
+    rgb_colors = np.zeros((height, width, 3), dtype=np.uint8)
+    int_array = image_array.astype(int)
+    list =[]
+    tuple_list=[]
+    # 遍历图像的每个像素
+    for i in range(height):
+        for j in range(width):
+            # 获取像素的RGB值
+            rgb = int_array[i, j]
+            a = str(rgb[0])+","+str(rgb[1])+","+str(rgb[2])
+            if a not in list:
+                s = a.split(",")
+                print(s)
+                sub_list=[]
+                for c in s:
+                    sub_list.append(int(c))
+                    sub_list1 = tuple(sub_list)
+                list.append(a)
+                tuple_list.append(sub_list1)
+    print(tuple_list)

@@ -50,10 +50,10 @@ dynamodb = boto3.resource('dynamodb')
 # df["Size"] = size
 #
 # df.to_excel("/Users/ziweishi/Desktop/mask_size.xlsx")
-
-
-key = "DataScience/WAUSI_SV0_0522/205-002/SV_1_Date/"
-s3.Object('spectralmd-datashare', key).delete()
+#
+#
+# key = "DataScience/WAUSI_SV0_0522/205-002/SV_1_Date/"
+# s3.Object('spectralmd-datashare', key).delete()
 
 
 # df = pd.read_excel("/Users/ziweishi/Downloads/WASP_Info.xlsx")
@@ -235,3 +235,12 @@ s3.Object('spectralmd-datashare', key).delete()
 #
 # data.to_excel("/Users/ziweishi/Desktop/subject_check.xlsx")
 # print(data)
+
+
+a='000'
+list=[]
+for i in a:
+    i = int(i)
+    list.append(i)
+b =tuple(list)
+print(b)
