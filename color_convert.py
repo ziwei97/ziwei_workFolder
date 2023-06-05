@@ -1,3 +1,5 @@
+import os
+
 import pandas as pd
 import numpy as np
 from PIL import Image
@@ -55,7 +57,30 @@ def OverlayMask(path):
     new_image = Image.fromarray(Mask)
     new_image.save(path)
 
-
+def return_pixel_type(path):
+    img = Image.open(path)
+    image_array = np.array(img)
+    # 获取图像的形状（高度、宽度、通道数）
+    height, width, channels = image_array.shape
+    # 创建一个空数组来存储RGB颜色
+    int_array = image_array.astype(int)
+    list = []
+    tuple_list = []
+    # 遍历图像的每个像素
+    for i in range(height):
+        for j in range(width):
+            # 获取像素的RGB值
+            rgb = int_array[i, j]
+            a = str(rgb[0]) + "," + str(rgb[1]) + "," + str(rgb[2])
+            if a not in list:
+                s = a.split(",")
+                sub_list = []
+                for c in s:
+                    sub_list.append(int(c))
+                    sub_list1 = tuple(sub_list)
+                list.append(a)
+                tuple_list.append(sub_list1)
+    return tuple_list
 
 if __name__ == "__main__":
     # table_name = 'BURN_Master_ImageCollections'
@@ -87,31 +112,22 @@ if __name__ == "__main__":
     #
     # # Print the int array
     # print(int_array)
+    pixel_file = {}
+    path = "/Users/ziweishi/Desktop/WASP_Mask/"
+    list = os.listdir(path)
+    index=0
+    for i in list:
+        if i[0] != ".":
+            img_path = path+i+"/Mask_"+i+".png"
+            tuple_list = return_pixel_type(img_path)
+            pixel_file[i] = len(tuple_list)
+            print(str(index)+" "+str(len(tuple_list)))
+            index+=1
 
-    img = Image.open("/Users/ziweishi/Downloads/Mask_0059a22c-2ecc-4c9b-82df-aa34b868f353.png")
-    image_array = np.array(img)
 
-    # 获取图像的形状（高度、宽度、通道数）
-    height, width, channels = image_array.shape
 
-    # 创建一个空数组来存储RGB颜色
-    rgb_colors = np.zeros((height, width, 3), dtype=np.uint8)
-    int_array = image_array.astype(int)
-    list =[]
-    tuple_list=[]
-    # 遍历图像的每个像素
-    for i in range(height):
-        for j in range(width):
-            # 获取像素的RGB值
-            rgb = int_array[i, j]
-            a = str(rgb[0])+","+str(rgb[1])+","+str(rgb[2])
-            if a not in list:
-                s = a.split(",")
-                print(s)
-                sub_list=[]
-                for c in s:
-                    sub_list.append(int(c))
-                    sub_list1 = tuple(sub_list)
-                list.append(a)
-                tuple_list.append(sub_list1)
-    print(tuple_list)
+
+    df = pd.DataFrame(pixel_file ,columns=["ImgCollGUID","Pixel Num"])
+    df.to_excel("/Users/ziweishi/Desktop/pixel_convert.xlsx")
+
+

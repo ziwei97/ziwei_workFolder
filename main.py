@@ -5,9 +5,47 @@ import matplotlib.image as image
 from PIL import Image
 import cv2
 import boto3
+import download_whole_dynamodb_table
 
-s3 = boto3.resource('s3')
-dynamodb = boto3.resource('dynamodb')
+
+# sql_path = "avhvjdlnjgshg"
+#
+# print(sql_path[-3:])
+
+# df = pd.read_excel("/Users/ziweishi/Documents/database/DFU_Master_ImageCollections.xlsx")
+# list1 = df["Raw"].to_list()
+#
+# a = list1[0].replace(" ","")
+# a = a.strip("{}").split(",")
+# b= [i.replace("'","") for i in a]
+# c = [i.replace("Raw/Raw_","") for i in b]
+# print(c)
+
+
+db = download_whole_dynamodb_table.download_table("DFU_Master_ImageCollections")
+db_sub = db[db["ImgCollGUID"] == "00"]
+
+db_raw = db_sub["Raw"].iloc[0]
+print(db_raw)
+
+
+
+
+
+
+
+
+
+
+# s3 = boto3.resource('s3')
+# dynamodb = boto3.resource('dynamodb')
+
+
+
+
+
+
+
 #
 # table_name = 'BURN_Master_ImageCollections'
 # table = dynamodb.Table(table_name)
@@ -233,14 +271,14 @@ dynamodb = boto3.resource('dynamodb')
 #
 # data = pd.DataFrame.from_dict(list,orient='index')
 #
-# data.to_excel("/Users/ziweishi/Desktop/subject_check.xlsx")
-# print(data)
-
-
-a='000'
-list=[]
-for i in a:
-    i = int(i)
-    list.append(i)
-b =tuple(list)
-print(b)
+# # data.to_excel("/Users/ziweishi/Desktop/subject_check.xlsx")
+# # print(data)
+#
+#
+# a='000'
+# list=[]
+# for i in a:
+#     i = int(i)
+#     list.append(i)
+# b =tuple(list)
+# print(b)

@@ -6,16 +6,10 @@ import download_whole_dynamodb_table
 import shutil
 import color_drawing
 
-#change
-
-
 s3 = boto3.resource('s3')
 dynamodb = boto3.resource('dynamodb')
 
-
-
 #part 1: S3 bucket dataset num check step
-
 
 def list_s3(bucket_name,prefix_name) ->list :
     s3 = boto3.resource('s3')
@@ -27,10 +21,6 @@ def list_s3(bucket_name,prefix_name) ->list :
             s3_address.append(key)
 
     return s3_address
-
-
-
-
 
 def structure_initial(type_num):
     # prompt = """Choose File Structure: \n1. SubjectID/SV/GUID/File \n2. SubjectID/GUID/File \n3. SubjectID/Wound/GUID/File \n4. GUID/File\nYour Choice: """
@@ -85,8 +75,6 @@ def dataset_list_file(bucket_name,prefix_name):
     df = pd.DataFrame(structure_list, columns=column)
     df.to_excel("/Users/ziweishi/Desktop/file_check.xlsx")
 
-
-
 def num_check():
     df = pd.read_excel("/Users/ziweishi/Desktop/file_check.xlsx")
     column = list(df.columns)
@@ -137,9 +125,6 @@ def file_num_check(bucket_name, prefix_name):
     dataset_list_file(bucket_name,prefix_name)
     num_check()
 
-
-
-
 #Part 2: S3 bucket dataset Image Quality Check
 
 def download_image_check(bucket_name,prefix_name):
@@ -169,7 +154,6 @@ def download_image_check(bucket_name,prefix_name):
         index+=1
         print(str(index)+"/"+str(len(guid_list)))
 
-
 #Part 3: Change Wrong Final Truth color and replace them in S3 data set and S3 database.
 def replace_reupload_truth(folder_path,guid,prefix):
     table = dynamodb.Table("BURN_Master_ImageCollections")
@@ -189,9 +173,6 @@ def replace_reupload_truth(folder_path,guid,prefix):
     s3_path = prefix+subject+"/"+wound+"/"+guid+"/"+file_name
     s3.Bucket("spectralmd-datashare").upload_file(local_file_path, s3_path)
 
-
-
-
 def replace_mask(folder_path,guid,prefix):
     table = dynamodb.Table("BURN_Master_ImageCollections")
     final_turth1 = download.get_attribute(table,guid,"FinalTruth")
@@ -210,7 +191,35 @@ def replace_mask(folder_path,guid,prefix):
     s3_path = prefix+subject+"/"+wound+"/"+guid+"/"+file_name
     s3.Bucket("spectralmd-datashare").upload_file(local_file_path, s3_path)
 
+
+
+def os_file_check(path):
+    guid_list = os.listdir(path)
+    guid=[]
+    file=[]
+    index=[]
+
+    num=0
+    for i in guid_list:
+        if i[0]!=".":
+            file_path = os.path.join(path,i)
+            file_list = os.listdir(file_path)
+            for j in file_list:
+                if j[0]!=".":
+                    guid.append(i)
+                    file.append(j)
+                    index.append(num)
+            num+=1
+    data = zip(guid,file)
+    df = pd.DataFrame(data,columns=["ImgCollGUID","File_name"])
+
+    df.to_excel("/Users/ziweishi/Desktop/os_file.xlsx")
+
+
 if __name__ == "__main__":
-    bucket_name = "spectralmd-datashare"
-    prefix_name = "DataScience/WAUSI_SV0_0525/"
-    file_num_check(bucket_name, prefix_name)
+    # bucket_name = "spectralmd-datashare"
+    # prefix_name = "DataScience/WAUSI_SV0_0525/"
+    # file_num_check(bucket_name, prefix_name)
+    os_file_check("/Users/ziweishi/Desktop/WASP_Mask")
+
+
