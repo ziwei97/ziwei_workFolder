@@ -15,10 +15,16 @@ def list_s3(bucket_name,prefix_name) ->list :
     s3 = boto3.resource('s3')
     bucket = s3.Bucket(bucket_name)
     s3_address = []
+    # for object_summary in bucket.objects:
+    #     key = object_summary.key
+    #     if key != ".DS_Store":
+    #         s3_address.append(key)
+    #         print(key)
     for object_summary in bucket.objects.filter(Prefix=prefix_name):
         key = object_summary.key
         if key != ".DS_Store":
             s3_address.append(key)
+            print(key)
 
     return s3_address
 
@@ -38,11 +44,12 @@ def dataset_list_file(bucket_name,prefix_name):
     sample = s3_list[2]
     sample = sample.replace(prefix_name,"")
     sample_list = sample.split("/")
+    print(sample_list)
     if "SV" in sample:
         mode = "1"
     elif len(sample_list) ==6:
         mode = "3"
-    elif len(sample_list) == 5:
+    elif len(sample_list) == 3:
         mode = "2"
     else:
         mode = "4"
@@ -217,9 +224,12 @@ def os_file_check(path):
 
 
 if __name__ == "__main__":
-    # bucket_name = "spectralmd-datashare"
-    # prefix_name = "DataScience/WAUSI_SV0_0525/"
-    # file_num_check(bucket_name, prefix_name)
-    os_file_check("/Users/ziweishi/Desktop/WASP_Mask")
+    bucket_name = "testziwei97"
+    prefix_name = "test1/"
+    # a=list_s3(bucket_name,prefix_name)
+    # b = pd.DataFrame(a,columns=["file"])
+    # b.to_excel("/Users/ziweishi/Desktop/file.xlsx")
+    file_num_check(bucket_name, prefix_name)
+    # os_file_check("/Users/ziweishi/Desktop/WASP_Mask")
 
 

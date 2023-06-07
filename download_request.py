@@ -111,12 +111,13 @@ def replace_all(text,reo):
 
 
 if __name__ == "__main__":
+    path = "/Users/ziweishi/Documents/DFU_regular_update/20230605/20230605_Guid_list.xlsx"
+    df = pd.read_excel(path)
+    df = df[df["Mask"].notna()]
+    df = df[df["VisitTime"]=="SV_1_Date"]
+    list = df["ImgCollGUID"].to_list()
 
-
-    path = "/Users/ziweishi/Desktop/dfu.xlsx"
-    df = pd.read_excel(path,sheet_name="Sheet2")
-    raw_list_og = df["ImgCollGUID"].to_list()
-    raw_list = raw_list_og[1252:]
+    # raw_list = raw_list_og[1252:]
     # raw_list1 = raw_list_og[0:134]
 
 #     raw_list ="""aeff569f-d617-4303-8786-67f13217554a
@@ -139,7 +140,7 @@ if __name__ == "__main__":
     # download_raw(table, raw_list1, attrs, "/Users/ziweishi/Desktop/WASP_Mask/")
 
     attrs = ["Mask", "PseudoColor"]
-    download_raw(table, raw_list, attrs, "/Users/ziweishi/Desktop/WASP_Mask/")
+    download_raw(table, list, attrs, "/Users/ziweishi/Desktop/WASP_Mask/")
 
 
 

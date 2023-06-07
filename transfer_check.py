@@ -178,8 +178,6 @@ def image_check(db,df,df2,site,check_path):
                 comment["Assessing Issue"] = "lc lost assessing"
 
 
-
-
             # check if reference in db
             reference_sub = df_sub[df_sub["ImageType"] == "Reference"]
             reference_list = reference_sub["ImageFileName"].to_list()

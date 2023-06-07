@@ -5,6 +5,10 @@ import download_request as download
 import download_whole_dynamodb_table
 import shutil
 import test_copy
+import threading
+from  botocore.client import Config
+from boto3.s3.transfer import TransferConfig
+import boto3.s3.transfer as s3transfer
 
 s3 = boto3.resource('s3')
 dynamodb = boto3.resource('dynamodb')
@@ -95,21 +99,24 @@ def wasp_data_prepare(excel_path,attrs,prefix):
         print(index)
     print(issue)
 
-def wausi_data_prepare(excel_path,attrs,prefix):
+def wausi_data_prepare(guid,sub,attrs,prefix):
+    s3_client = boto3.client("s3", config=Config(max_pool_connections=50))
     table_name = 'DFU_Master_ImageCollections'
     table = dynamodb.Table(table_name)
-    df = pd.read_excel(excel_path)
-    guid = df["ImgCollGUID"].to_list()
-    sub = df["SubjectID"].to_list()
-    vis = df["VisitTime"].to_list()
+    transfer_config = s3transfer.TransferConfig(
+        use_threads=True,
+        max_concurrency=20,
+    )
+    s3t = s3transfer.create_transfer_manager(s3_client, transfer_config)
     issue = []
     index = 0
-    for i in guid:
-        subject = sub[index]
-        visit_time = vis[index]
-        bucket = get_attribute(table, i, "Bucket")
-        for j in attrs:
-            try:
+    try:
+        for i in guid:
+            print(index)
+            subject = sub[index]
+            bucket = get_attribute(table, i, "Bucket")
+            index += 1
+            for j in attrs:
                 label = get_attribute(table, i, j)
                 for a in label:
                     a_source = a
@@ -118,19 +125,21 @@ def wausi_data_prepare(excel_path,attrs,prefix):
                         'Key': a_source
                     }
                     a = a.split("/")[-1]
-                    a_source_pseduo = prefix+subject+"/"+visit_time+"/"+ i + "/" + a
+                    a_source_pseduo = prefix + subject + "/" + i + "/" + a
                     dest_source = {
-                        'Bucket': 'spectralmd-datashare',
+                        'Bucket': 'testziwei97',
                         'Key': a_source_pseduo
                     }
-                    test_copy.s3_copy(copy_source,dest_source)
-                    # s3.meta.client.copy(copy_source, 'spectralmd-datashare', a_source_pseduo)
-            except:
-                issue.append(i + " " + j + " " + "Missing")
+                    s3t.copy(copy_source=copy_source, bucket=dest_source["Bucket"],key = dest_source["Key"])
+    except Exception as err:
+        issue.append(i + " " + j + " " + "Missing")
+        print(err)
 
-                print(i + " " + j + " " + "Missing")
-        index += 1
-        print(index)
+    finally:
+        s3t.shutdown()
+
+
+
 
 def epoc_data_prepare(excel_path,attrs,prefix):
     table_name = 'BURN_Master_ImageCollections'
@@ -176,6 +185,7 @@ def simple_data_prepare(corpus,attrs,prefix):
     guid = corpus.split("\n")
     index = 0
     for i in guid:
+        print(i)
         bucket = get_attribute(table, i, "Bucket")
         for j in attrs:
             try:
@@ -192,8 +202,8 @@ def simple_data_prepare(corpus,attrs,prefix):
                         'Bucket': 'spectralmd-datashare',
                         'Key': a_source_pseduo
                     }
-                    # test_copy.s3_copy(copy_source,dest_source)
-                    s3.meta.client.copy(copy_source, 'spectralmd-datashare', a_source_pseduo)
+                    test_copy.s3_copy(copy_source,dest_source)
+                    # s3.meta.client.copy(copy_source, 'spectralmd-datashare', a_source_pseduo)
             except:
                 print(i)
         index += 1
@@ -232,12 +242,11 @@ def folder_data_upload(excel_path,folder):
 
 
 if __name__ == "__main__":
-    attrs=["PseudoColor","Assessing","Mask"]
-    prefix="DataScience/WAUSI_SV0_0525/"
-    path="/Users/ziweishi/Documents/DFU_regular_update/20230522/20230522_Guid_list.xlsx"
-    wausi_data_prepare(path,attrs,prefix)
-
-
-
-
+    attrs=["Raw","Mask"]
+    prefix="test1/"
+    path="/Users/ziweishi/Desktop/wausi_sv1.xlsx"
+    df = pd.read_excel(path)
+    guid_list = df["ImgCollGUID"].to_list()
+    sub_list = df["SubjectID"].to_list()
+    wausi_data_prepare(guid_list,sub_list,attrs,prefix)
 

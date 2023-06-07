@@ -22,11 +22,11 @@ import download_whole_dynamodb_table
 # print(c)
 
 
-db = download_whole_dynamodb_table.download_table("DFU_Master_ImageCollections")
-db_sub = db[db["ImgCollGUID"] == "00"]
-
-db_raw = db_sub["Raw"].iloc[0]
-print(db_raw)
+# db = download_whole_dynamodb_table.download_table("DFU_Master_ImageCollections")
+# db_sub = db[db["ImgCollGUID"] == "00"]
+#
+# db_raw = db_sub["Raw"].iloc[0]
+# print(db_raw)
 
 
 
@@ -282,3 +282,34 @@ print(db_raw)
 #     list.append(i)
 # b =tuple(list)
 # print(b)
+
+import boto3
+
+# 创建S3客户端
+# 指定存储桶名称
+bucket = 'testziwei97'
+
+
+
+def list_bucket_objects(bucket_name):
+    s3 = boto3.client('s3')
+    response = s3.list_objects_v2(Bucket=bucket_name)
+
+    objects = []
+    for obj in response['Contents']:
+        objects.append(obj['Key'])
+
+    while response['IsTruncated']:
+        response = s3.list_objects_v2(Bucket=bucket_name, ContinuationToken=response['NextContinuationToken'])
+        for obj in response['Contents']:
+            objects.append(obj['Key'])
+
+    return objects
+
+# 使用示例
+
+all = list_bucket_objects(bucket)
+
+
+b = pd.DataFrame(all,columns=["file"])
+b.to_excel("/Users/ziweishi/Desktop/file.xlsx")
