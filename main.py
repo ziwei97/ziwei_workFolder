@@ -282,34 +282,48 @@ import download_whole_dynamodb_table
 #     list.append(i)
 # b =tuple(list)
 # print(b)
+#
+# import boto3
+#
+# # 创建S3客户端
+# # 指定存储桶名称
+# bucket = 'testziwei97'
+#
+#
+#
+# def list_bucket_objects(bucket_name):
+#     s3 = boto3.client('s3')
+#     response = s3.list_objects_v2(Bucket=bucket_name)
+#
+#     objects = []
+#     for obj in response['Contents']:
+#         objects.append(obj['Key'])
+#
+#     while response['IsTruncated']:
+#         response = s3.list_objects_v2(Bucket=bucket_name, ContinuationToken=response['NextContinuationToken'])
+#         for obj in response['Contents']:
+#             objects.append(obj['Key'])
+#
+#     return objects
+#
+# # 使用示例
+#
+# all = list_bucket_objects(bucket)
+#
+#
+# b = pd.DataFrame(all,columns=["file"])
+# b.to_excel("/Users/ziweishi/Desktop/file.xlsx")
 
-import boto3
 
-# 创建S3客户端
-# 指定存储桶名称
-bucket = 'testziwei97'
+df_train = pd.read_excel("/Users/ziweishi/Documents/DFU_regular_update/20230608/toyin_filtered.xlsx")
 
+df_sub = df_train["SubjectID"].to_list()
 
+df= pd.read_excel("/Users/ziweishi/Desktop/dfu_check.xlsx")
 
-def list_bucket_objects(bucket_name):
-    s3 = boto3.client('s3')
-    response = s3.list_objects_v2(Bucket=bucket_name)
+df_validation = df[~df["MedicalNumber"].isin(df_sub)]
 
-    objects = []
-    for obj in response['Contents']:
-        objects.append(obj['Key'])
-
-    while response['IsTruncated']:
-        response = s3.list_objects_v2(Bucket=bucket_name, ContinuationToken=response['NextContinuationToken'])
-        for obj in response['Contents']:
-            objects.append(obj['Key'])
-
-    return objects
-
-# 使用示例
-
-all = list_bucket_objects(bucket)
+df_validation.to_excel("/Users/ziweishi/Desktop/dfu_validation.xlsx")
 
 
-b = pd.DataFrame(all,columns=["file"])
-b.to_excel("/Users/ziweishi/Desktop/file.xlsx")
+
