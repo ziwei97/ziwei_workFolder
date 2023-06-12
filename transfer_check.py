@@ -243,29 +243,29 @@ if __name__ =="__main__":
         "lahdfu":"/Volumes/dfu/DataTransfers/lahdfu/DFU_SS/LASITE_DFU_SMD2225-019_06_01_23/SpectralView/dvsspdata.sql"
     }
     site_list=site_loc.keys()
-
+    #
     data_sites=[]
     for i in site_list:
         path = site_loc[i]
         df_guid, df_image, site, check_path = server_table_output(path)
-        if i =="whfa":
-            df_guid["MedicalNumber"] = df_guid["MedicalNumber"].apply(lambda x: "203-"+x)
-
-        if i =="lvrpool":
-            df_guid["MedicalNumber"] = df_guid["MedicalNumber"].apply(lambda x: x.replace("105","205-") if "105" in x else x)
-            df_guid["MedicalNumber"] = df_guid["MedicalNumber"].apply(lambda x: x.replace("205", "205-") if "205" in x else x)
-        if i =="encinogho":
-            df_guid["MedicalNumber"] = df_guid["MedicalNumber"].apply(lambda x: "210-"+x if "210" not in x else x)
-        if i =="ocer":
-            df_guid["MedicalNumber"] = df_guid["MedicalNumber"].apply(lambda x: "202-"+x if "202" not in x else x)
-
-        if i =="youngst":
-            df_guid["MedicalNumber"] = df_guid["MedicalNumber"].apply(lambda x: x.replace("204","204-") if "204" in x else x)
-            df_guid["MedicalNumber"] = df_guid["MedicalNumber"].apply(lambda x: "204-"+x if "204-" not in x else x)
-
-        # site_image= image_check(db,df_guid, df_image, site, check_path)
+        site_image = image_check(db, df_guid, df_image, site, check_path)
         data_sites.append(df_guid)
-        print(i)
+
+    #     if i =="whfa":
+    #         df_guid["MedicalNumber"] = df_guid["MedicalNumber"].apply(lambda x: "203-"+x)
+    #     if i =="lvrpool":
+    #         df_guid["MedicalNumber"] = df_guid["MedicalNumber"].apply(lambda x: x.replace("105","205-") if "105" in x else x)
+    #         df_guid["MedicalNumber"] = df_guid["MedicalNumber"].apply(lambda x: x.replace("205", "205-") if "205" in x else x)
+    #     if i =="encinogho":
+    #         df_guid["MedicalNumber"] = df_guid["MedicalNumber"].apply(lambda x: "210-"+x if "210" not in x else x)
+    #     if i =="ocer":
+    #         df_guid["MedicalNumber"] = df_guid["MedicalNumber"].apply(lambda x: "202-"+x if "202" not in x else x)
+    #
+    #     if i =="youngst":
+    #         df_guid["MedicalNumber"] = df_guid["MedicalNumber"].apply(lambda x: x.replace("204","204-") if "204" in x else x)
+    #         df_guid["MedicalNumber"] = df_guid["MedicalNumber"].apply(lambda x: "204-"+x if "204-" not in x else x)
+
+
 
     union_df = pd.concat(data_sites)
     union_df.to_excel("/Users/ziweishi/Desktop/dfu_check.xlsx")
