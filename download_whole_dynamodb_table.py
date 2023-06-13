@@ -86,6 +86,7 @@ def download_table(table_name):
         df1 = get_table(table_name)
         df = pd.DataFrame(df1)
         df.to_excel(excel_path)
+        df = pd.read_excel(excel_path)
     else:
         df = pd.read_excel(excel_path)
 

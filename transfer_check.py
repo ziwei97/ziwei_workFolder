@@ -6,6 +6,14 @@ import numpy as np
 
 import download_whole_dynamodb_table
 
+def has_element(value,element_list):
+    for i in element_list:
+        if i in value:
+            return True
+
+    return False
+
+
 
 def server_table_output(sql_path):
     connection = pymysql.connect(
@@ -44,6 +52,10 @@ def server_table_output(sql_path):
     check_path = site_path+date+"/"
     if os.path.isdir(check_path)==False:
         os.mkdir(check_path)
+
+    element_list = ["000", "99"]
+    df = df[~df["MedicalNumber"].apply(lambda x: has_element(x, element_list))]
+
     guid_file_path = check_path+"collection.xlsx"
     df.to_excel(guid_file_path, index=False)
 
@@ -114,9 +126,12 @@ def image_check(db,df,df2,site,check_path):
                 try:
                     db_raw = db_sub["Raw"].iloc[0]
                     db_raw1 = db_raw.replace(" ", "")
+
                     db_raw1 = db_raw1.replace("Raw/Raw_", "")
                     db_raw1 = db_raw1.replace("'", "")
+
                     db_raw2 = db_raw1.strip("{}").split(",")
+
                     issue_list = []
                     for p in raw_list:
                         if p not in db_raw2:
@@ -227,9 +242,12 @@ def image_check(db,df,df2,site,check_path):
 
 
 
+
 if __name__ =="__main__":
     db = download_whole_dynamodb_table.download_table("DFU_Master_ImageCollections")
     db = db[db["StudyName"] == "DFU_SSP"]
+
+
     site_loc = {
         "nynw":"/Volumes/dfu/DataTransfers/nynw/DFU_SS/NYNW_DFU_SMD2223-008_06_06_23(full)/SpectralView/dvsspdata.sql",
         "ocer":"/Volumes/dfu/DataTransfers/ocer/DFU_SS/OCER_DFU_SMD2148-019_06_08_23(full)/SpectralView/dvsspdata.sql",
@@ -243,7 +261,6 @@ if __name__ =="__main__":
         "lahdfu":"/Volumes/dfu/DataTransfers/lahdfu/DFU_SS/LASITE_DFU_SMD2225-019_06_01_23/SpectralView/dvsspdata.sql"
     }
     site_list=site_loc.keys()
-    #
     data_sites=[]
     for i in site_list:
         path = site_loc[i]
@@ -251,20 +268,19 @@ if __name__ =="__main__":
         site_image = image_check(db, df_guid, df_image, site, check_path)
         data_sites.append(df_guid)
 
-    #     if i =="whfa":
-    #         df_guid["MedicalNumber"] = df_guid["MedicalNumber"].apply(lambda x: "203-"+x)
-    #     if i =="lvrpool":
-    #         df_guid["MedicalNumber"] = df_guid["MedicalNumber"].apply(lambda x: x.replace("105","205-") if "105" in x else x)
-    #         df_guid["MedicalNumber"] = df_guid["MedicalNumber"].apply(lambda x: x.replace("205", "205-") if "205" in x else x)
-    #     if i =="encinogho":
-    #         df_guid["MedicalNumber"] = df_guid["MedicalNumber"].apply(lambda x: "210-"+x if "210" not in x else x)
-    #     if i =="ocer":
-    #         df_guid["MedicalNumber"] = df_guid["MedicalNumber"].apply(lambda x: "202-"+x if "202" not in x else x)
-    #
-    #     if i =="youngst":
-    #         df_guid["MedicalNumber"] = df_guid["MedicalNumber"].apply(lambda x: x.replace("204","204-") if "204" in x else x)
-    #         df_guid["MedicalNumber"] = df_guid["MedicalNumber"].apply(lambda x: "204-"+x if "204-" not in x else x)
-
+        if i =="whfa":
+            df_guid["MedicalNumber"] = df_guid["MedicalNumber"].apply(lambda x: "203-"+x)
+            df_guid["MedicalNumber"] = df_guid["MedicalNumber"].apply(lambda x: x.replace("-203", "-005") if "-203" in x else x)
+        if i =="lvrpool":
+            df_guid["MedicalNumber"] = df_guid["MedicalNumber"].apply(lambda x: x.replace("105","205") if "105" in x else x)
+            df_guid["MedicalNumber"] = df_guid["MedicalNumber"].apply(lambda x: x.replace("205", "205-") if "205" in x else x)
+        if i =="encinogho":
+            df_guid["MedicalNumber"] = df_guid["MedicalNumber"].apply(lambda x: "210-"+x if "210" not in x else x)
+        if i =="ocer":
+            df_guid["MedicalNumber"] = df_guid["MedicalNumber"].apply(lambda x: "202-"+x if "202" not in x else x)
+        if i =="youngst":
+            df_guid["MedicalNumber"] = df_guid["MedicalNumber"].apply(lambda x: x.replace("204","204-") if "204" in x else x)
+            df_guid["MedicalNumber"] = df_guid["MedicalNumber"].apply(lambda x: "204-"+x if "204-" not in x else x)
 
 
     union_df = pd.concat(data_sites)

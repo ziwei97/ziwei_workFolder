@@ -224,8 +224,7 @@ def simple_data_upload(corpus,folder,prefix):
 
 
 
-def folder_data_upload(excel_path,folder):
-    df = pd.read_excel(excel_path)
+def folder_data_upload(guid,folder):
     guid = df["GUID"].to_list()
     index = 0
     for i in guid:

@@ -114,33 +114,11 @@ if __name__ == "__main__":
     path = "/Users/ziweishi/Documents/DFU_regular_update/20230605/20230605_Guid_list.xlsx"
     df = pd.read_excel(path)
     df = df[df["Mask"].notna()]
-    df = df[df["VisitTime"]=="SV_1_Date"]
-    list = df["ImgCollGUID"].to_list()
-
-    # raw_list = raw_list_og[1252:]
-    # raw_list1 = raw_list_og[0:134]
-
-#     raw_list ="""aeff569f-d617-4303-8786-67f13217554a
-# 52118b78-4a33-4a99-b289-6da59e5031d3
-# 03c446e7-de05-42aa-bd5d-1ae2728c7729
-# a2863b2c-552c-495c-b3a5-f7848b46ac7f
-# 93df7064-424e-4221-b8e7-6411839efa29
-# 8092a09b-dbbb-4197-9389-652f13e378f4
-# 1c8008e8-68de-4e5e-92a2-1735ed25b7e9
-# e8e209c5-e891-4468-9e8f-5c758c119f8a
-# a3a3f3c3-952d-4725-bd9d-70a98bf46179
-# 5cdd388a-cc79-4b4c-a7b2-601740be855a"""
-#     raw_list = raw_list.split("\n")
 
 
-    table_name = 'DFU_Master_ImageCollections'
-    table = dynamodb.Table(table_name)
 
-    # attrs = ["PseudoColor"]
-    # download_raw(table, raw_list1, attrs, "/Users/ziweishi/Desktop/WASP_Mask/")
 
-    attrs = ["Mask", "PseudoColor"]
-    download_raw(table, list, attrs, "/Users/ziweishi/Desktop/WASP_Mask/")
+
 
 
 
