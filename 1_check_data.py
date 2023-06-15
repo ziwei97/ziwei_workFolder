@@ -1,4 +1,5 @@
 import boto3
+import numpy as np
 import pandas as pd
 import os
 import download_request as download
@@ -24,7 +25,6 @@ def list_s3(bucket_name,prefix_name) ->list :
         key = object_summary.key
         if key != ".DS_Store":
             s3_address.append(key)
-            print(key)
 
     return s3_address
 
@@ -198,6 +198,45 @@ def replace_mask(folder_path,guid,prefix):
     s3_path = prefix+subject+"/"+wound+"/"+guid+"/"+file_name
     s3.Bucket("spectralmd-datashare").upload_file(local_file_path, s3_path)
 
+def mask_check(bucket_name,prefix_name):
+    list = list_s3(bucket_name,prefix_name)
+    #structure like imageType/filename
+    guid_info={}
+    type_info=[]
+    for i in list:
+
+        file_list = i.split("/")
+        type=file_list[-2]
+        if type not in type_info:
+            type_info.append(type)
+        file=file_list[-1]
+        temp = file.split("_")
+        temp1 = temp[-1]
+        guid = temp1[:-4]
+        if guid not in guid_info:
+            guid_info[guid]={}
+            guid_info[guid][type]=i
+        else:
+            guid_info[guid][type] =i
+
+
+    type_column = {f'{i}': [] for i in type_info}
+    guid_list = guid_info.keys()
+
+    for j in guid_list:
+        info = guid_info[j]
+        for x in type_column.keys():
+            try:
+                type_column[x].append(info[x])
+            except:
+                type_column[x].append(np.nan)
+
+
+
+    df = pd.DataFrame(type_column)
+    df.insert(0,"ImgCollGUID",guid_list)
+    df.to_excel("/Users/ziweishi/Desktop/file_check.xlsx")
+
 
 
 def os_file_check(path):
@@ -224,12 +263,8 @@ def os_file_check(path):
 
 
 if __name__ == "__main__":
-    bucket_name = "testziwei97"
-    prefix_name = "test1/"
-    # a=list_s3(bucket_name,prefix_name)
-    # b = pd.DataFrame(a,columns=["file"])
-    # b.to_excel("/Users/ziweishi/Desktop/file.xlsx")
-    file_num_check(bucket_name, prefix_name)
-    # os_file_check("/Users/ziweishi/Desktop/WASP_Mask")
+    bucket_name = "spectralmd-datashare"
+    prefix_name = "DataScience/LYD_Mask_drawing_0614/"
+    mask_check(bucket_name,prefix_name)
 
 

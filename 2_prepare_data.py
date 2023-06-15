@@ -224,7 +224,7 @@ def simple_data_upload(corpus,folder,prefix):
 
 
 
-def folder_data_upload(guid,folder):
+def folder_data_upload(df,guid,folder):
     guid = df["GUID"].to_list()
     index = 0
     for i in guid:
@@ -240,12 +240,104 @@ def folder_data_upload(guid,folder):
         index += 1
 
 
+def mask_prepare(excel_path,attrs,prefix):
+    s3_client = boto3.client("s3", config=Config(max_pool_connections=50))
+    table_name = 'DFU_Master_ImageCollections'
+    table = dynamodb.Table(table_name)
+    transfer_config = s3transfer.TransferConfig(
+        use_threads=True,
+        max_concurrency=20,
+    )
+
+    issue = []
+    index = 0
+
+    df = pd.read_excel(excel_path)
+    guid = df["ImgCollGUID"].to_list()
+
+    s3t = s3transfer.create_transfer_manager(s3_client, transfer_config)
+
+    for i in guid:
+        print(index)
+        bucket = get_attribute(table, i, "Bucket")
+        index += 1
+        for j in attrs:
+            try:
+                label = get_attribute(table, i, j)
+                for a in label:
+                    a_source = a
+                    copy_source = {
+                        'Bucket': bucket,
+                        'Key': a_source
+                    }
+                    # a = a.split("/")[-1]
+                    if j == "Assessing":
+                        a_source_pseduo = prefix + "Assessing/Assessing_" + i + ".png"
+                    elif j == "PseudoColor":
+                        a_source_pseduo = prefix + "PseudoColor/PseudoColor_" + i + ".tif"
+                    else:
+                        print("no attributes")
+
+                    dest_source = {
+                        'Bucket': 'spectralmd-datashare',
+                        'Key': a_source_pseduo
+                    }
+                    s3t.copy(copy_source=copy_source, bucket=dest_source["Bucket"], key=dest_source["Key"])
+            except:
+                print(i + " missing " + j)
+
+
+
+    s3t.shutdown()
+
+def mask_download(excel_path,folder):
+    os.mkdir(folder)
+    df = pd.read_excel(excel_path)
+    guid = df["ImgCollGUID"].to_list()
+    assess = df["Assessing"].to_list()
+    pseudo = df["PseudoColor"].to_list()
+    s3_client = boto3.client("s3", config=Config(max_pool_connections=50))
+    transfer_config = s3transfer.TransferConfig(
+        use_threads=True,
+        max_concurrency=20,
+    )
+
+    s3t = s3transfer.create_transfer_manager(s3_client, transfer_config)
+    index=0
+    for i in guid:
+        bucket = "spectralmd-datashare"
+        assess_key=assess[index]
+        pseudo_key=pseudo[index]
+        download_list = []
+        download_list.append(assess_key)
+        download_list.append(pseudo_key)
+
+        guid_path = folder + i
+        os.mkdir(guid_path)
+        for j in download_list:
+            try:
+                file_name = j.split("/")[-1]
+                file_path = os.path.join(guid_path, file_name)
+                s3t.download(bucket, j, file_path)
+            except:
+                file_name = pseudo_key.split("/")[-1]
+                file_name = "fake_"+file_name
+                file_path = os.path.join(guid_path, file_name)
+                s3t.download(bucket, pseudo_key, file_path)
+
+        index+=1
+        print(index)
+
+    s3t.shutdown()
+    print("done")
+
 if __name__ == "__main__":
-    attrs=["Raw","Mask"]
-    prefix="test1/"
-    path="/Users/ziweishi/Desktop/wausi_sv1.xlsx"
-    df = pd.read_excel(path)
-    guid_list = df["ImgCollGUID"].to_list()
-    sub_list = df["SubjectID"].to_list()
-    wausi_data_prepare(guid_list,sub_list,attrs,prefix)
+    attrs=["PseudoColor","Assessing"]
+    prefix="DataScience/LYD_Mask_drawing_0614/"
+    # local_path = "/Users/ziweishi/Desktop/Mask_0614/"
+    # path="DataScience/LYD_Mask_drawing_0614/"
+    # mask_download(path,local_path)
+    excel_path = "/Users/ziweishi/Documents/DFU_regular_update/20230614/20230614_data.xlsx"
+    mask_prepare(excel_path, attrs, prefix)
+
 

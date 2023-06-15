@@ -11,9 +11,7 @@ import download_whole_dynamodb_table
 # s3.Object('spectralmd-datashare', key).delete()
 
 
-a = "202-9999"
+path = "/Users/ziweishi/Desktop/file_check.xlsx"
 
-b = "99"
 
-if b in a:
-    print("yes")
+
