@@ -259,9 +259,6 @@ def time_table_transfer(update_date):
 
 
 
-
-
-
     # output guid list
     time_list=[]
     time_info=db_info[1]
@@ -335,5 +332,5 @@ def time_table_transfer(update_date):
 
 
 if __name__ == "__main__":
-    time_table_transfer("20230614")
+    time_table_transfer("20230619")
 
