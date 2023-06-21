@@ -13,8 +13,8 @@ import boto3.s3.transfer as s3transfer
 s3 = boto3.resource('s3')
 dynamodb = boto3.resource('dynamodb')
 
-table_name = 'BURN_Master_ImageCollections'
-table = dynamodb.Table(table_name)
+# table_name = 'BURN_Master_ImageCollections'
+# table = dynamodb.Table(table_name)
 
 
 def get_attribute(table,guid,attr):
@@ -99,7 +99,7 @@ def wasp_data_prepare(excel_path,attrs,prefix):
         print(index)
     print(issue)
 
-def wausi_data_prepare(guid,sub,attrs,prefix):
+def wausi_data_prepare(df,attrs,prefix):
     s3_client = boto3.client("s3", config=Config(max_pool_connections=50))
     table_name = 'DFU_Master_ImageCollections'
     table = dynamodb.Table(table_name)
@@ -110,10 +110,14 @@ def wausi_data_prepare(guid,sub,attrs,prefix):
     s3t = s3transfer.create_transfer_manager(s3_client, transfer_config)
     issue = []
     index = 0
+    guid = df["ImgCollGUID"].to_list()
+    sub = df["SubjectID"].to_list()
+    sv = df["VisitTime"].to_list()
     try:
         for i in guid:
             print(index)
             subject = sub[index]
+            sv_n = sv[index]
             bucket = get_attribute(table, i, "Bucket")
             index += 1
             for j in attrs:
@@ -125,9 +129,9 @@ def wausi_data_prepare(guid,sub,attrs,prefix):
                         'Key': a_source
                     }
                     a = a.split("/")[-1]
-                    a_source_pseduo = prefix + subject + "/" + i + "/" + a
+                    a_source_pseduo = prefix + subject + "/" +sv_n+"/"+ i + "/" + a
                     dest_source = {
-                        'Bucket': 'testziwei97',
+                        'Bucket': 'spectralmd-datashare',
                         'Key': a_source_pseduo
                     }
                     s3t.copy(copy_source=copy_source, bucket=dest_source["Bucket"],key = dest_source["Key"])
@@ -181,33 +185,33 @@ def epoc_data_prepare(excel_path,attrs,prefix):
         print(index)
     # print(issue)
 
-def simple_data_prepare(corpus,attrs,prefix):
-    guid = corpus.split("\n")
-    index = 0
-    for i in guid:
-        print(i)
-        bucket = get_attribute(table, i, "Bucket")
-        for j in attrs:
-            try:
-                label = get_attribute(table, i, j)
-                for a in label:
-                    a_source = a
-                    copy_source = {
-                        'Bucket': bucket,
-                        'Key': a_source
-                    }
-                    a = a.split("/")[-1]
-                    a_source_pseduo = prefix+ i + "/" + a
-                    dest_source = {
-                        'Bucket': 'spectralmd-datashare',
-                        'Key': a_source_pseduo
-                    }
-                    test_copy.s3_copy(copy_source,dest_source)
-                    # s3.meta.client.copy(copy_source, 'spectralmd-datashare', a_source_pseduo)
-            except:
-                print(i)
-        index += 1
-        print(index)
+# def simple_data_prepare(corpus,attrs,prefix):
+#     guid = corpus.split("\n")
+#     index = 0
+#     for i in guid:
+#         print(i)
+#         bucket = get_attribute(table, i, "Bucket")
+#         for j in attrs:
+#             try:
+#                 label = get_attribute(table, i, j)
+#                 for a in label:
+#                     a_source = a
+#                     copy_source = {
+#                         'Bucket': bucket,
+#                         'Key': a_source
+#                     }
+#                     a = a.split("/")[-1]
+#                     a_source_pseduo = prefix+ i + "/" + a
+#                     dest_source = {
+#                         'Bucket': 'spectralmd-datashare',
+#                         'Key': a_source_pseduo
+#                     }
+#                     test_copy.s3_copy(copy_source,dest_source)
+#                     # s3.meta.client.copy(copy_source, 'spectralmd-datashare', a_source_pseduo)
+#             except:
+#                 print(i)
+#         index += 1
+#         print(index)
 
 def simple_data_upload(corpus,folder,prefix):
     guid = corpus.split("\n")
@@ -223,21 +227,20 @@ def simple_data_upload(corpus,folder,prefix):
         print(index)
 
 
-
-def folder_data_upload(df,guid,folder):
-    guid = df["GUID"].to_list()
-    index = 0
-    for i in guid:
-        name = "Mask_" + i + ".png"
-        local_file = folder + name
-        bucket = download.get_attribute(table, i, "Bucket")
-        try:
-            s3_file_path = "Mask/" + name
-            s3.Bucket(bucket).upload_file(local_file, s3_file_path)
-        except:
-            print(i)
-        print(bucket + " " + i)
-        index += 1
+# def folder_data_upload(df,guid,folder):
+#     guid = df["GUID"].to_list()
+#     index = 0
+#     for i in guid:
+#         name = "Mask_" + i + ".png"
+#         local_file = folder + name
+#         bucket = download.get_attribute(table, i, "Bucket")
+#         try:
+#             s3_file_path = "Mask/" + name
+#             s3.Bucket(bucket).upload_file(local_file, s3_file_path)
+#         except:
+#             print(i)
+#         print(bucket + " " + i)
+#         index += 1
 
 
 def mask_prepare(excel_path,attrs,prefix):
@@ -332,12 +335,46 @@ def mask_download(excel_path,folder):
     print("done")
 
 if __name__ == "__main__":
-    attrs=["PseudoColor","Assessing"]
-    prefix="DataScience/LYD_Mask_drawing_0614/"
-    # local_path = "/Users/ziweishi/Desktop/Mask_0614/"
-    # path="DataScience/LYD_Mask_drawing_0614/"
-    # mask_download(path,local_path)
-    excel_path = "/Users/ziweishi/Documents/DFU_regular_update/20230614/20230614_data.xlsx"
-    mask_prepare(excel_path, attrs, prefix)
+    attrs=["PseudoColor"]
+    prefix="DataScience/GroundTruth_Pseudo_0620/"
+
+    subject="""201-002
+201-004
+202-001
+202-005
+202-012
+202-015
+202-018
+202-019
+202-020
+202-021
+202-026
+202-027
+202-028
+202-033
+202-034
+202-035
+202-036
+202-037
+202-038
+202-039
+203-007
+203-008
+203-016
+203-019
+203-022
+203-035
+203-042
+204-001
+204-002"""
+
+    subject_list = subject.split("\n")
+
+    df = pd.read_excel("/Users/ziweishi/Documents/DFU_regular_update/20230620/20230620_Guid_list.xlsx")
+
+    df = df[df["SubjectID"].isin(subject_list)]
+
+    wausi_data_prepare(df,attrs,prefix)
+
 
 

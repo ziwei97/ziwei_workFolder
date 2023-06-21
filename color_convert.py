@@ -177,7 +177,7 @@ if __name__ == "__main__":
     # df = pd.DataFrame(pixel_file ,columns=["ImgCollGUID","Pixel Num"])
     # df.to_excel("/Users/ziweishi/Desktop/pixel_convert.xlsx")
 
-    path = "/Users/ziweishi/Desktop/WASP_Mask/e504f991-9ec4-4c27-8926-61c97f64f441/Mask_e504f991-9ec4-4c27-8926-61c97f64f441.png"
+    path = "/Users/ziweishi/Desktop/WechatIMG8.png"
     print(return_pixel_type(path))
 
 
