@@ -40,8 +40,12 @@ def download_raw(table,raw_list,attrs,path):
         name = get_attribute(table,i,"Bucket")
         # subject = get_attribute(table, i, "SubjectID")
         # wound = get_attribute(table, i, "Wound")
-        # sub_folder = os.path.join(fold,subject)
-        guid_folder = os.path.join(fold,i)
+
+        sub = get_attribute(table, i, "SubjectID")
+        sub_folder = os.path.join(fold,sub)
+        if os.path.isdir(sub_folder) == False:
+            os.mkdir(sub_folder)
+        guid_folder = os.path.join(sub_folder, i)
         if os.path.isdir(guid_folder) == False:
             os.mkdir(guid_folder)
 
@@ -91,7 +95,7 @@ def download_raw(table,raw_list,attrs,path):
                         # print(sp)
             except:
                 error_list.append(i)
-                print(i)
+                print(i+" "+j+" Missing")
         index+=1
 
     # data = zip(id_list,mask_list,size_list)
@@ -111,9 +115,27 @@ def replace_all(text,reo):
 
 
 if __name__ == "__main__":
-    path = "/Users/ziweishi/Documents/DFU_regular_update/20230605/20230605_Guid_list.xlsx"
+    path = "/Users/ziweishi/Documents/database/DFU_Master_ImageCollections.xlsx"
     df = pd.read_excel(path)
-    df = df[df["Mask"].notna()]
+    sub_name=["201-011","202-035","202-036"]
+    df = df[df["SubjectID"].isin(sub_name)]
+    raw_list = df["ImgCollGUID"].to_list()
+
+
+
+
+
+    table_name = 'DFU_Master_ImageCollections'
+    table = dynamodb.Table(table_name)
+
+    path ="/Users/ziweishi/Documents/sample/"
+
+
+    attrs=["PseudoColor","Assessing"]
+    download_raw(table,raw_list,attrs,path)
+
+
+
 
 
 

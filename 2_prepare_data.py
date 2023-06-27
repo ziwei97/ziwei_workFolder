@@ -129,7 +129,7 @@ def wausi_data_prepare(df,attrs,prefix):
                         'Key': a_source
                     }
                     a = a.split("/")[-1]
-                    a_source_pseduo = prefix + subject + "/" +sv_n+"/"+ i + "/" + a
+                    a_source_pseduo = prefix + subject + "/" + i + "/" + a
                     dest_source = {
                         'Bucket': 'spectralmd-datashare',
                         'Key': a_source_pseduo
@@ -338,35 +338,7 @@ if __name__ == "__main__":
     attrs=["PseudoColor"]
     prefix="DataScience/GroundTruth_Pseudo_0620/"
 
-    subject="""201-002
-201-004
-202-001
-202-005
-202-012
-202-015
-202-018
-202-019
-202-020
-202-021
-202-026
-202-027
-202-028
-202-033
-202-034
-202-035
-202-036
-202-037
-202-038
-202-039
-203-007
-203-008
-203-016
-203-019
-203-022
-203-035
-203-042
-204-001
-204-002"""
+    subject=""""""
 
     subject_list = subject.split("\n")
 

@@ -13,7 +13,13 @@ def has_element(value,element_list):
 
     return False
 
-
+def parse_date(x):
+    try:
+        stamp = int(x) - 2209031999999999700 - 6*60*60*1000000000
+        eval = str(pd.to_datetime(stamp).strftime('%d-%m-%Y'))
+    except:
+        eval = np.nan
+    return eval
 
 def server_table_output(sql_path):
     connection = pymysql.connect(
@@ -38,6 +44,8 @@ def server_table_output(sql_path):
     cursor.execute(query1)
     collection_result = cursor.fetchall()
     df = pd.DataFrame(collection_result)
+    df["CaptureDate"]=df["CreateDateTime"].apply(lambda x: str(x))
+
 
     query2 = "select * from imagescollection left join images on imagescollection.IMCOLLID=images.IMCOLLID"
     cursor.execute(query2)
@@ -249,23 +257,23 @@ if __name__ =="__main__":
 
 
     site_loc = {
-        "nynw":"/Volumes/dfu/DataTransfers/nynw/DFU_SS/NYNW_DFU_SMD2223-008_06_06_23(full)/SpectralView/dvsspdata.sql",
-        "ocer":"/Volumes/dfu/DataTransfers/ocer/DFU_SS/OCER_DFU_SMD2148-019_06_08_23(full)/SpectralView/dvsspdata.sql",
-        "whfa":"/Volumes/dfu/DataTransfers/whfa/DFU_SS/WHFA_DFU_SMD2223-007_04_11_23/SpectralView/dvsspdata.sql",
-        "youngst":"/Volumes/dfu/DataTransfers/youngst/DFU_SS/YOUNGST_DFU_SMD2223-010_03_20_23/SpectralView/dvsspdata.sql",
-        "lvrpool":"/Volumes/dfu/DataTransfers/lvrpool/DFU_SS/LVRPOOL_DFU_SMD2223-009-03_20_23/SpectralView/dvsspdata.sql",
-        "hilloh":"/Volumes/dfu/DataTransfers/hilloh/DFU_SS/HILLOH_DFU_SMD2225-011_04_25_23/SpectralView/dvsspdata.sql",
-        "grovoh":"/Volumes/dfu/DataTransfers/grovoh/DFU_SS/GROVOH_DFU_SMD2225-013_04_25_23/SpectralView/dvsspdata.sql",
-        "mentoh":"/Volumes/dfu/DataTransfers/mentoh/DFU_SS/MENTOH_DFU_SMD2223-007_06_01_23/SpectralView/dvsspdata.sql",
-        "encinogho":"/Volumes/dfu/DataTransfers/encinogho/DFU_SS/ENCINO_DFU_SMD2225-018_05_15_23/SpectralView/dvsspdata.sql",
-        "lahdfu":"/Volumes/dfu/DataTransfers/lahdfu/DFU_SS/LASITE_DFU_SMD2225-019_06_01_23/SpectralView/dvsspdata.sql"
+        # "nynw":"/Volumes/dfu/DataTransfers/nynw/DFU_SS/NYNW_DFU_SMD2223-008_06_06_23(full)/SpectralView/dvsspdata.sql",
+        # "ocer":"/Volumes/dfu/DataTransfers/ocer/DFU_SS/OCER_DFU_SMD2148-019_06_08_23(full)/SpectralView/dvsspdata.sql",
+        "whfa":"/Volumes/dfu/DataTransfers/whfa/DFU_SS/WHFA_DFU_SMD2223-007_06_22_23(full)/SpectralView/dvsspdata.sql",
+        # "youngst":"/Volumes/dfu/DataTransfers/youngst/DFU_SS/YOUNGST_DFU_SMD2223-010_03_20_23/SpectralView/dvsspdata.sql",
+        # "lvrpool":"/Volumes/dfu/DataTransfers/lvrpool/DFU_SS/LVRPOOL_DFU_SMD2223-009-03_20_23/SpectralView/dvsspdata.sql",
+        # "hilloh":"/Volumes/dfu/DataTransfers/hilloh/DFU_SS/HILLOH_DFU_SMD2225-011_04_25_23/SpectralView/dvsspdata.sql",
+        # "grovoh":"/Volumes/dfu/DataTransfers/grovoh/DFU_SS/GROVOH_DFU_SMD2225-013_04_25_23/SpectralView/dvsspdata.sql",
+        # "mentoh":"/Volumes/dfu/DataTransfers/mentoh/DFU_SS/MENTOH_DFU_SMD2223-007_06_01_23/SpectralView/dvsspdata.sql",
+        # "encinogho":"/Volumes/dfu/DataTransfers/encinogho/DFU_SS/ENCINO_DFU_SMD2225-018_06_22_23/SpectralView/dvsspdata.sql",
+        # "lahdfu":"/Volumes/dfu/DataTransfers/lahdfu/DFU_SS/LASITE_DFU_SMD2225-019_06_22_23/SpectralView/dvsspdata.sql"
     }
     site_list=site_loc.keys()
     data_sites=[]
     for i in site_list:
         path = site_loc[i]
         df_guid, df_image, site, check_path = server_table_output(path)
-        # site_image = image_check(db, df_guid, df_image, site, check_path)
+        site_image = image_check(db, df_guid, df_image, site, check_path)
         data_sites.append(df_guid)
 
         if i =="whfa":
