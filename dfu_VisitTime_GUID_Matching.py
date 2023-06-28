@@ -332,5 +332,5 @@ def time_table_transfer(update_date):
 
 
 if __name__ == "__main__":
-    time_table_transfer("20230620")
+    time_table_transfer("20230627")
 

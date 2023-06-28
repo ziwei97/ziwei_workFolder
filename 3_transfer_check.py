@@ -1,8 +1,8 @@
 import os.path
-
 import pymysql
 import pandas as pd
 import numpy as np
+import get_sql_from_smb as sql_get
 
 import download_whole_dynamodb_table
 
@@ -52,8 +52,9 @@ def server_table_output(sql_path):
     image_result = cursor.fetchall()
     df2 = pd.DataFrame(image_result)
 
-    date = ((sql_path.split("/"))[-3])[-8:]
-    site = (sql_path.split("/"))[-5]
+    info = sql_path.split("/")[-1]
+    date = info.split("_")[-2]
+    site = info.split("_")[-3]
     site_path = '/Users/ziweishi/Documents/transfer_regular_check/'+site+"/"
     if os.path.isdir(site_path)==False:
         os.mkdir(site_path)
@@ -255,23 +256,50 @@ if __name__ =="__main__":
     db = download_whole_dynamodb_table.download_table("DFU_Master_ImageCollections")
     db = db[db["StudyName"] == "DFU_SSP"]
 
+    local_site = ["nynw","ocer","whfa","youngst","lvrpool","memdfu","hilloh","grovoh","mentoh","encinogho","lahdfu"]
+    s3_site=["rsci"]
 
-    site_loc = {
-        # "nynw":"/Volumes/dfu/DataTransfers/nynw/DFU_SS/NYNW_DFU_SMD2223-008_06_06_23(full)/SpectralView/dvsspdata.sql",
-        # "ocer":"/Volumes/dfu/DataTransfers/ocer/DFU_SS/OCER_DFU_SMD2148-019_06_08_23(full)/SpectralView/dvsspdata.sql",
-        "whfa":"/Volumes/dfu/DataTransfers/whfa/DFU_SS/WHFA_DFU_SMD2223-007_06_22_23(full)/SpectralView/dvsspdata.sql",
-        # "youngst":"/Volumes/dfu/DataTransfers/youngst/DFU_SS/YOUNGST_DFU_SMD2223-010_03_20_23/SpectralView/dvsspdata.sql",
-        # "lvrpool":"/Volumes/dfu/DataTransfers/lvrpool/DFU_SS/LVRPOOL_DFU_SMD2223-009-03_20_23/SpectralView/dvsspdata.sql",
-        # "hilloh":"/Volumes/dfu/DataTransfers/hilloh/DFU_SS/HILLOH_DFU_SMD2225-011_04_25_23/SpectralView/dvsspdata.sql",
-        # "grovoh":"/Volumes/dfu/DataTransfers/grovoh/DFU_SS/GROVOH_DFU_SMD2225-013_04_25_23/SpectralView/dvsspdata.sql",
-        # "mentoh":"/Volumes/dfu/DataTransfers/mentoh/DFU_SS/MENTOH_DFU_SMD2223-007_06_01_23/SpectralView/dvsspdata.sql",
-        # "encinogho":"/Volumes/dfu/DataTransfers/encinogho/DFU_SS/ENCINO_DFU_SMD2225-018_06_22_23/SpectralView/dvsspdata.sql",
-        # "lahdfu":"/Volumes/dfu/DataTransfers/lahdfu/DFU_SS/LASITE_DFU_SMD2225-019_06_22_23/SpectralView/dvsspdata.sql"
-    }
-    site_list=site_loc.keys()
+    total_site=local_site+s3_site
+
+    sql_path = sql_get.dfu_sql_find(total_site)
+
+    site_list={}
+    for i in total_site:
+        site_list[i]={}
+        if i in local_site:
+            site_list[i]["type"] = "local"
+        else:
+            site_list[i]["type"] = "s3"
+
+
+
+
+
+
+
+    # site_loc = {
+    #     # "nynw":"/Volumes/dfu/DataTransfers/nynw/DFU_SS/NYNW_DFU_SMD2223-008_06_06_23(full)/SpectralView/dvsspdata.sql",
+    #     # "ocer":"/Volumes/dfu/DataTransfers/ocer/DFU_SS/OCER_DFU_SMD2148-019_06_08_23(full)/SpectralView/dvsspdata.sql",
+    #     # "whfa":"/Volumes/dfu/DataTransfers/whfa/DFU_SS/WHFA_DFU_SMD2223-007_06_22_23(full)/SpectralView/dvsspdata.sql",
+    #     # "youngst":"/Volumes/dfu/DataTransfers/youngst/DFU_SS/YOUNGST_DFU_SMD2223-010_03_20_23/SpectralView/dvsspdata.sql",
+    #     # "lvrpool":"/Volumes/dfu/DataTransfers/lvrpool/DFU_SS/LVRPOOL_DFU_SMD2223-009-03_20_23/SpectralView/dvsspdata.sql",
+    #     # "hilloh":"/Volumes/dfu/DataTransfers/hilloh/DFU_SS/HILLOH_DFU_SMD2225-011_04_25_23/SpectralView/dvsspdata.sql",
+    #     # "grovoh":"/Volumes/dfu/DataTransfers/grovoh/DFU_SS/GROVOH_DFU_SMD2225-013_04_25_23/SpectralView/dvsspdata.sql",
+    #     # "mentoh":"/Volumes/dfu/DataTransfers/mentoh/DFU_SS/MENTOH_DFU_SMD2223-007_06_01_23/SpectralView/dvsspdata.sql",
+    #     # "encinogho":"/Volumes/dfu/DataTransfers/encinogho/DFU_SS/ENCINO_DFU_SMD2225-018_06_22_23/SpectralView/dvsspdata.sql",
+    #     # "lahdfu":"/Volumes/dfu/DataTransfers/lahdfu/DFU_SS/LASITE_DFU_SMD2225-019_06_22_23/SpectralView/dvsspdata.sql",
+    #     # "rsci":"/Users/ziweishi/rsci/Downloads/rsci_DFU_SMD2225-019_06_22_23/SpectralView/dvsspdata.sql"
+    # }
+    # site_list=site_loc.keys()
+
+
     data_sites=[]
-    for i in site_list:
-        path = site_loc[i]
+    for i in site_list.keys():
+        if i in local_site:
+            path = sql_get.dfu_sql_find(i,"local")
+        else:
+            path =sql_get.dfu_sql_find(i,"s3")
+
         df_guid, df_image, site, check_path = server_table_output(path)
         site_image = image_check(db, df_guid, df_image, site, check_path)
         data_sites.append(df_guid)
