@@ -1,13 +1,11 @@
 import os.path
 import pandas as pd
 from datetime import datetime, timedelta
-import download_whole_dynamodb_table
+from util import download_whole_dynamodb_table
 import numpy as np
 import toyin_castor_check
-import download_request
 import boto3
-import transfer_check
-
+import dfu_summary
 
 s3 = boto3.resource('s3')
 dynamodb = boto3.resource('dynamodb')
@@ -87,7 +85,7 @@ def clean_dfu_db(check_date):
 
 def clean_validation_dfu_db(check_date,sub_list):
     db_info = download_whole_dynamodb_table.download_table('DFU_Master_ImageCollections')
-    guid =  transfer_check.output_total()
+    guid =  dfu_summary.output_total()
 
     # guid = pd.read_excel("/Users/ziweishi/Desktop/dfu_check.xlsx")
     guid = guid[['MedicalNumber', 'ImgCollGUID', 'CaptureDate']]

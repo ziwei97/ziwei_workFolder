@@ -2,10 +2,7 @@ import boto3
 import numpy as np
 import pandas as pd
 import os
-import download_request as download
-import download_whole_dynamodb_table
-import shutil
-import color_drawing
+from util import color_drawing, download_request as download
 
 s3 = boto3.resource('s3')
 dynamodb = boto3.resource('dynamodb')
@@ -173,7 +170,7 @@ def replace_reupload_truth(folder_path,guid,prefix):
     local_guid_path = os.path.join(folder_path,guid)
     local_file_path = os.path.join(local_guid_path,file_name)
     print(local_file_path)
-    color_drawing.color_convert(local_file_path,local_file_path)
+    color_drawing.color_convert(local_file_path, local_file_path)
     s3.Bucket(bucket).upload_file(local_file_path, final_turth)
     subject = download.get_attribute(table,guid,"SubjectID")
     wound = str(download.get_attribute(table,guid,"Wound"))
@@ -191,7 +188,7 @@ def replace_mask(folder_path,guid,prefix):
     local_guid_path = os.path.join(folder_path,guid)
     local_file_path = os.path.join(local_guid_path,file_name)
     print(local_file_path)
-    color_drawing.color_convert(local_file_path,local_file_path)
+    color_drawing.color_convert(local_file_path, local_file_path)
     s3.Bucket(bucket).upload_file(local_file_path, final_turth)
     subject = download.get_attribute(table,guid,"SubjectID")
     wound = str(download.get_attribute(table,guid,"Wound"))

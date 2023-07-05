@@ -1,10 +1,7 @@
 import boto3
-import numpy as np
 import pandas as pd
 import os
-import download_request as download
-import download_whole_dynamodb_table
-import shutil
+from util import download_request as download, download_whole_dynamodb_table
 
 s3 = boto3.resource('s3')
 dynamodb = boto3.resource('dynamodb')

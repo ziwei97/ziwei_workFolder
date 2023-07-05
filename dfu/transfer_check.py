@@ -3,7 +3,8 @@ import pymysql
 import pandas as pd
 import numpy as np
 import get_sql_from_smb as sql_get
-import download_whole_dynamodb_table
+from util import download_whole_dynamodb_table
+
 
 def has_element(value,element_list):
     for i in element_list:

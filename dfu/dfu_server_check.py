@@ -1,7 +1,6 @@
 import os
 import pandas as pd
-import download_whole_dynamodb_table
-import download_request
+from util import download_request, download_whole_dynamodb_table
 import boto3
 
 s3 = boto3.resource('s3')
@@ -199,7 +198,7 @@ def down_issue(subjectid):
     table = dynamodb.Table(table_name)
     attrs=["PseudoColor"]
     path = os.path.join("/Users/ziweishi/Documents/DFU_Server_Check/",subjectid)
-    download_request.download_raw(table,guid,attrs,path)
+    download_request.download_raw(table, guid, attrs, path)
 
 
 

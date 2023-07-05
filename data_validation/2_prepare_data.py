@@ -1,13 +1,8 @@
 import boto3
 import pandas as pd
 import os
-import download_request as download
-import download_whole_dynamodb_table
-import shutil
 import test_copy
-import threading
 from  botocore.client import Config
-from boto3.s3.transfer import TransferConfig
 import boto3.s3.transfer as s3transfer
 
 s3 = boto3.resource('s3')
