@@ -79,21 +79,28 @@ from datetime import datetime, timedelta
 #
 # print(max_time)
 
+#
+# local_site = ["nynw","ocer","whfa","youngst","lvrpool","memdfu","hilloh","grovoh","mentoh","encinogho","lahdfu"]
+# s3_site=["rsci"]
+#
+# total_site=local_site+s3_site
+#
+#
+#
+# site_list={}
+# for i in total_site:
+#     site_list[i]={}
+#     if i in local_site:
+#         site_list[i]["type"] = "local"
+#     else:
+#         site_list[i]["type"] = "s3"
+#
+#
+# print(site_list["youngst"]["type"])
 
-local_site = ["nynw","ocer","whfa","youngst","lvrpool","memdfu","hilloh","grovoh","mentoh","encinogho","lahdfu"]
-s3_site=["rsci"]
 
-total_site=local_site+s3_site
+path = "/Users/ziweishi/Documents/transfer_regular_check/sql_file/"
+if os.path.isdir(path) == True:
+    shutil.rmtree(path)
 
-
-
-site_list={}
-for i in total_site:
-    site_list[i]={}
-    if i in local_site:
-        site_list[i]["type"] = "local"
-    else:
-        site_list[i]["type"] = "s3"
-
-
-print(site_list["youngst"]["type"])
+os.mkdir(path)

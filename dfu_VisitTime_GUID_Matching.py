@@ -1,10 +1,16 @@
 import os.path
-
 import pandas as pd
 from datetime import datetime, timedelta
 import download_whole_dynamodb_table
 import numpy as np
 import toyin_castor_check
+import download_request
+import boto3
+import transfer_check
+
+
+s3 = boto3.resource('s3')
+dynamodb = boto3.resource('dynamodb')
 
 
 
@@ -40,44 +46,6 @@ def fuzzy_date_match(date1, date2, day_range, date_format='%d-%m-%Y'):
     if range_start <= date2 <= range_end:
         return True
     return False
-
-
-
-# def change_format(date):
-#     i = str(date)
-#     if "." in i:
-#         i = datetime.strptime(i, "%m.%d.%y").strftime("%d-%m-%Y")
-#     if "/" in i:
-#         i = datetime.strptime(i, "%m/%d/%y").strftime("%d-%m-%Y")
-#     if "-" in i:
-#         try:
-#             i = datetime.strptime(i, "%Y-%m-%d %H:%M:%S").strftime("%d-%m-%Y")
-#         except:
-#             i = datetime.strptime(i, "%d-%m-%Y").strftime("%d-%m-%Y")
-#     return i
-#
-#
-# def clean_toyin():
-#     toyin = pd.read_excel("/Users/ziweishi/Downloads/WAUSI Completion Tracker Data Analysis 4-14-2023.xlsx",
-#                           sheet_name="Sheet2")
-#     df_toyin = pd.DataFrame()
-#     df_toyin["SubjectID"] = toyin["Subject ID"]
-#     column = ["SubjectID"]
-#
-#     for i in range(1, 13):
-#         visit = "SV_" + str(i) + "_Date"
-#         to_vis = "SV" + str(i)
-#         column.append(visit)
-#         date_time_list = []
-#         for i in toyin[to_vis]:
-#             if type(i) != float:
-#                 i = change_format(i)
-#                 date_time_list.append(i)
-#             else:
-#                 date_time_list.append(i)
-#         visit_date = pd.DataFrame(date_time_list)
-#         df_toyin[visit] = visit_date
-#     return df_toyin
 
 def clean_dfu_db(check_date):
     guid = download_whole_dynamodb_table.download_table('DFU_Master_ImageCollections')
@@ -117,6 +85,94 @@ def clean_dfu_db(check_date):
     return sub,guid_time,tags,masks,pseudos,assess
 
 
+def clean_validation_dfu_db(check_date,sub_list):
+    db_info = download_whole_dynamodb_table.download_table('DFU_Master_ImageCollections')
+    guid =  transfer_check.output_total()
+
+    # guid = pd.read_excel("/Users/ziweishi/Desktop/dfu_check.xlsx")
+    guid = guid[['MedicalNumber', 'ImgCollGUID', 'CaptureDate']]
+    guid['SubjectID']=guid['MedicalNumber']
+    guid = guid[['SubjectID', 'ImgCollGUID', 'CaptureDate']]
+
+    guid["VisitDate"] = guid[["CaptureDate"]].apply(lambda x: parse_date((x['CaptureDate'])), axis=1)
+    guid["UTC_Time"] =  guid[["CaptureDate"]].apply(lambda x: parse_time((x['CaptureDate'])), axis=1)
+
+    guid_id = guid["ImgCollGUID"].to_list()
+    pseudo_list=[]
+    mask_list=[]
+    assessing_list=[]
+    tag_list=[]
+    index=0
+    for gu in guid_id:
+        db_sub = db_info[db_info["ImgCollGUID"]==gu]
+        try:
+            pseudo = db_sub["PseudoColor"].iloc[0]
+        except:
+            pseudo = np.nan
+
+        try:
+            mask = db_sub["Mask"].iloc[0]
+        except:
+            mask = np.nan
+
+        try:
+            assess = db_sub["Assessing"].iloc[0]
+        except:
+            assess = np.nan
+
+        try:
+            tag = db_sub["Tags"].iloc[0]
+        except:
+            tag = np.nan
+
+        pseudo_list.append(pseudo)
+        mask_list.append(mask)
+        assessing_list.append(assess)
+        tag_list.append(tag)
+        # print(index)
+        index+=1
+
+    guid["PseudoColor"]=pseudo_list
+    guid['Mask'] = mask_list
+    guid['Assessing'] =assessing_list
+    guid['Tags'] = tag_list
+
+    sub = guid[['SubjectID', 'ImgCollGUID', 'VisitDate',"UTC_Time","Tags","Mask","PseudoColor","Assessing"]]
+    # sub["SubjectID"] = sub["SubjectID"].apply(lambda x: x.replace("206-001", "206-002") if "206-001" in x else x)
+    sub_copy = sub.copy()
+    sub_copy.loc[sub_copy["SubjectID"].str.contains("206-001"), "SubjectID"] = sub_copy.loc[
+        sub_copy["SubjectID"].str.contains("206-001"), "SubjectID"].str.replace("206-001", "206-002")
+
+    sub = sub_copy
+    sub = sub[sub["SubjectID"].isin(sub_list)]
+    list = sub["ImgCollGUID"].to_list()
+    time = sub["UTC_Time"].to_list()
+    tag = sub["Tags"].to_list()
+    mask = sub["Mask"].to_list()
+    pseudo = sub["PseudoColor"].to_list()
+    assessing=sub["Assessing"].to_list()
+    guid_time = {}
+    tags={}
+    masks={}
+    pseudos={}
+    assess={}
+    index=0
+    for i in list:
+        guid_time[i]=time[index]
+        tags[i]=tag[index]
+        masks[i]=mask[index]
+        pseudos[i]=pseudo[index]
+        assess[i]=assessing[index]
+        index+=1
+
+    path ="/Users/ziweishi/Documents/DFU_regular_update/"+check_date+"/database"+"_"+check_date+".xlsx"
+    sub.to_excel(path)
+    print("total device collection num is: " + str(len(sub)))
+
+    return sub, guid_time, tags, masks, pseudos, assess
+
+
+
 
 def time_table_transfer(update_date):
     og_path = "/Users/ziweishi/Documents/DFU_regular_update/"
@@ -125,11 +181,21 @@ def time_table_transfer(update_date):
         os.mkdir(path)
 
     #step 1 return subject list
-    vt1 = toyin_castor_check.clean_track(update_date)
+    # #training toyin
+    # vt1 = toyin_castor_check.clean_track(update_date)
+
+    #validation toyin
+    vt1 = toyin_castor_check.clean_validation_track(update_date)
     vt = vt1[0]
-    db_info = clean_dfu_db(update_date)
-    sub = db_info[0]
+    issue = vt1[1]
+    status = vt1[2]
+    ##training
+    # db_info = clean_dfu_db(update_date)
+
+    #validation
     vt_sub = vt["SubjectID"].to_list()
+    db_info = clean_validation_dfu_db(update_date,vt_sub)
+    sub = db_info[0]
     list_b = []
     time_order = []
     visit_b = []
@@ -225,12 +291,16 @@ def time_table_transfer(update_date):
 
     num_list =[]
     total_none_match=0
+    sub_status=[]
 
     for i in range(len(list_com)):
         list_guid_pic = []
         subjectid = list_b[i]
         visit_time = time_order[i]
+        sta = status[subjectid]
+        sub_status.append(sta)
         num=0
+
         for j in list_com[i]:
             try:
                 sub_set = df1[df1["sub_time"] == j]
@@ -270,8 +340,7 @@ def time_table_transfer(update_date):
     list_final_path = os.path.join(path, list_file_name)
     final_guid = zip(subjectid_list,visitime_list,castor_date,capture_date,guid_final_list)
 
-    issue = vt1[1]
-    status = vt1[2]
+
     index=0
     collection_type=[]
     tags_add=[]
@@ -324,13 +393,13 @@ def time_table_transfer(update_date):
     # output match situation frame
     match_file_name = str(update_date) + "_matched_Guid.xlsx"
     match_final_path = os.path.join(path, match_file_name)
-    data_guid = zip(list_b, time_order, visit_b, time_match, num_list,list_guid)
-    df_final = pd.DataFrame(data=data_guid,columns=["SubjectID", "VisitTime", "Castor_Date", "Match_Device_Date","Num_GUID", "ImgCollGUID"])
+    data_guid = zip(list_b, sub_status,time_order, visit_b, time_match, num_list,list_guid)
+    df_final = pd.DataFrame(data=data_guid,columns=["SubjectID", "Status","VisitTime", "Castor_Date", "Match_Device_Date","Num_GUID", "ImgCollGUID"])
     df_final.to_excel(match_final_path)
 
     return df_final
 
 
 if __name__ == "__main__":
-    time_table_transfer("20230627")
+    time_table_transfer("20230705")
 
