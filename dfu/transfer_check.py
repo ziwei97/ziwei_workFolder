@@ -10,7 +10,6 @@ def has_element(value,element_list):
     for i in element_list:
         if i in value:
             return True
-
     return False
 
 def parse_date(x):
@@ -21,30 +20,27 @@ def parse_date(x):
         eval = np.nan
     return eval
 
-def server_table_output(sql_path):
+def server_table_output(sql_path,site):
     connection = pymysql.connect(
         host='127.0.0.1',
         user='root',
         password='szw970727',
-        database='algorithm',
+        database=site,
         cursorclass=pymysql.cursors.DictCursor
     )
     cursor = connection.cursor()
-    path =sql_path
-    with open(path, 'r') as file:
-        query = file.read()
 
-    statements = query.split(';')
-    # Execute each statement
-    for statement in statements:
-        cursor.execute(statement)
+
 
 
     query1 = "select * from imagescollection left join injury on imagescollection.INJURYID=injury.INJURYID join patient on injury.PID = patient.PID"
     cursor.execute(query1)
     collection_result = cursor.fetchall()
     df = pd.DataFrame(collection_result)
+
     df["CaptureDate"]=df["CreateDateTime"].apply(lambda x: str(x))
+
+
 
 
     query2 = "select * from imagescollection left join images on imagescollection.IMCOLLID=images.IMCOLLID"
@@ -60,6 +56,9 @@ def server_table_output(sql_path):
     check_path = site_path+date+"/"
     if os.path.isdir(check_path)==False:
         os.mkdir(check_path)
+
+    og_file_path = check_path + site + "_" + date + "_collection_og.xlsx"
+    df.to_excel(og_file_path)
 
     if site != "memdfu":
         element_list = ["000", "99","8888"]
@@ -299,10 +298,34 @@ def refresh_sql_database():
             site_list[i]["type"] = "local"
         else:
             site_list[i]["type"] = "s3"
+
     sql_path = sql_get.dfu_sql_find(site_list)
+
     for i in total_site:
         site_list[i]["sql_path"] = sql_path[i]
         print(i + " " + sql_path[i])
+        connection = pymysql.connect(
+            host='127.0.0.1',
+            user='root',
+            password='szw970727',
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        cursor = connection.cursor()
+
+        try:
+            cursor.execute("CREATE DATABASE " + i)
+        except:
+            print("database " + i + " already exist")
+
+        cursor.execute("use "+i)
+
+        path = sql_path[i]
+        with open(path, 'r') as file:
+            query = file.read()
+        statements = query.split(';')
+        # Execute each statement
+        for statement in statements:
+            cursor.execute(statement)
 
     a = input("is the path right? ")
     if a !="no":
@@ -334,7 +357,7 @@ if __name__ =="__main__":
         data_sites = []
         for i in check_list.keys():
             path = check_list[i]["sql_path"]
-            df_guid, df_image, site, check_path = server_table_output(path)
+            df_guid, df_image, site, check_path = server_table_output(path,i)
             site_image = image_check(db, df_guid, df_image, site, check_path)
             data_sites.append(df_guid)
 
