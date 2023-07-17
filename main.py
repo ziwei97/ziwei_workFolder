@@ -1,6 +1,8 @@
 import os
 import shutil
 
+import pandas as pd
+
 # key = "DataScience/WAUSI_SV0_0522/205-002/SV_1_Date/"
 # s3.Object('spectralmd-datashare', key).delete()
 
@@ -91,8 +93,42 @@ import shutil
 # print(site_list["youngst"]["type"])
 
 
-path = "/Users/ziweishi/Documents/transfer_regular_check/sql_file/"
-if os.path.isdir(path) == True:
-    shutil.rmtree(path)
+# path = "/Users/ziweishi/Documents/transfer_regular_check/0_sql_file"
+# list = os.listdir(path)
+#
+# for i in list:
+#     p = i.split("_")
+#     print(p[0]+" "+p[1])
 
-os.mkdir(path)
+path="/Users/ziweishi/Downloads/check1.xlsx"
+df = pd.read_excel((path))
+
+time_list=df["sub_time"].to_list()
+
+list1=[["201-016 02-04-2023","201-016 05-03-2023"],["201-016 12-02-2023","201-016 12-03-2023"],["201-016 19-03-2023"],["201-016 26-02-2023"]]
+
+total_list=[]
+
+for i in list1:
+    value=[]
+    for j in i:
+        try:
+            df_sub = df[df["sub_time"] == j]
+            sub_list = df_sub["new"].iloc[0]
+            sub_list1 = sub_list[2:-2].split("', '")
+            print(len(sub_list1))
+            for p in sub_list1:
+                value.append(p)
+        except:
+            value=[]
+
+
+    total_list.append(value)
+    num = len(value)
+    print(num)
+
+
+for z in total_list:
+    print(len(z))
+
+

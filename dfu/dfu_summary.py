@@ -7,29 +7,115 @@ import numpy as np
 
 
 def output_total():
-    site_list = transfer_check.refresh_sql_database()
-    if site_list != False:
-        check_site = ["nynw", "ocer", "whfa", "youngst", "lvrpool", "memdfu", "hilloh", "grovoh", "mentoh", "encinogho",
-                      "lahdfu", "rsci"]
-        check_list = {}
-        for check in check_site:
-            check_list[check] = site_list[check]
-        data_sites = []
-        for i in check_list.keys():
-            path = check_list[i]["sql_path"]
-            df_guid, df_image, site, check_path = transfer_check.server_table_output(path)
-            data_sites.append(df_guid)
 
-        union_df = pd.concat(data_sites)
-        union_df.to_excel("/Users/ziweishi/Desktop/dfu_check.xlsx")
-        return union_df
+    a = input("new output?")
+
+    if a =="yes":
+        site_list = transfer_check.refresh_sql_database()
+        if site_list != False:
+            check_site = ["nynw", "ocer", "whfa", "youngst", "lvrpool", "memdfu", "hilloh", "grovoh", "mentoh",
+                          "encinogho",
+                          "lahdfu", "rsci"]
+            check_list = {}
+            for check in check_site:
+                check_list[check] = site_list[check]
+            data_sites = []
+            for i in check_list.keys():
+                path = check_list[i]["sql_path"]
+                df_guid, df_image, site, check_path = transfer_check.server_table_output(path, i)
+                data_sites.append(df_guid)
+
+            union_df = pd.concat(data_sites)
+
+            validation = pd.read_excel(
+                "/Users/ziweishi/Downloads/WAUSI Completion Tracker Data Analysis 4-14-2023.xlsx",
+                sheet_name="Validation Dataset")
+            val = validation["Subject ID"].to_list()
+            union_df = union_df[union_df["MedicalNumber"].isin(val)]
+            union_df.to_excel("/Users/ziweishi/Desktop/dfu_check.xlsx")
+            print(len(union_df))
+            return union_df
+        else:
+            print("Wrong Path!")
     else:
-        print("Wrong Path!")
+        df = pd.read_excel("/Users/ziweishi/Desktop/dfu_check.xlsx")
+        return df
+
+
+
+def output_all_total():
+
+    a = input("new all output?")
+
+    if a =="yes":
+        site_list = transfer_check.refresh_sql_database()
+        if site_list != False:
+            check_site = ["nynw", "ocer", "whfa", "youngst", "lvrpool", "memdfu", "hilloh", "grovoh", "mentoh",
+                          "encinogho",
+                          "lahdfu", "rsci"]
+            check_list = {}
+            for check in check_site:
+                check_list[check] = site_list[check]
+            data_sites = []
+            for i in check_list.keys():
+                path = check_list[i]["sql_path"]
+                df_guid, df_image, site, check_path = transfer_check.server_table_output(path, i)
+                data_sites.append(df_guid)
+
+            union_df = pd.concat(data_sites)
+            union_df.to_excel("/Users/ziweishi/Desktop/all_check.xlsx")
+
+            print(len(union_df))
+            return union_df
+        else:
+            print("Wrong Path!")
+    else:
+        df = pd.read_excel("/Users/ziweishi/Desktop/all_check.xlsx")
+        return df
+
+
+def subject_info():
+    tr_src =  pd.read_excel("/Users/ziweishi/Desktop/validation.xlsx", sheet_name="Training Dataset")
+    vd_src = pd.read_excel("/Users/ziweishi/Desktop/validation.xlsx", sheet_name="Validation Dataset")
+
+    tr = pd.DataFrame()
+    tr["MedicalNumber"]=tr_src["Subject ID"].to_list()
+    tr["Status"]= tr_src["Completed Study (or withdrawn/LTF)"].to_list()
+    tr["site"] = tr["MedicalNumber"].apply(lambda x: x[0:3])
+    tr_info={"201":"nynw","202":"ocer","203":"whfa","204":"youngst","205":"lvrpool"}
+    tr["site_name"] = tr["site"].apply(lambda x: tr_info[x])
+    tr["type"]="training"
+
+
+
+
+    vd = pd.DataFrame()
+    vd["MedicalNumber"] = vd_src["Subject ID"].to_list()
+    vd["Status"] = vd_src["Completed Study (or withdrawn/LTF)"].to_list()
+    vd["site"] = vd["MedicalNumber"].apply(lambda x: x[0:3])
+    vd_info = {"201": "nynw", "205": "lverpool", "206": "memdfu", "207": "hilloh", "208": "grovoh","209":"mentoh",
+               "210":"encinogho","211":"lahdfu","292":"rcsi"}
+    vd["site_name"] = vd["site"].apply(lambda x: vd_info[x])
+    vd["type"] = "validation"
+
+    total = [tr,vd]
+
+    df = pd.concat(total)
+
+    df.to_excel("/Users/ziweishi/Desktop/wausi_subject.xlsx")
+    return df
+
+
+
+
 
 def make_summary():
-    df_type = pd.read_excel("/Users/ziweishi/Desktop/wausi_subject.xlsx",sheet_name="total")
-    df_guid = output_total()
+    # df_type = pd.read_excel("/Users/ziweishi/Desktop/wausi_subject.xlsx",sheet_name="total")
+    df_type = subject_info()
+    df_guid = output_all_total()
     df = pd.merge(df_type,df_guid,on="MedicalNumber",how="left")
+    df = df[df["ImgCollGUID"].notna()]
+    # df.to_excel("/Users/ziweishi/Desktop/check.xlsx")
 
     df_tra = df[df["type"]=="training"]
     df_tra = df_tra.copy()
@@ -128,9 +214,9 @@ def make_summary():
 
     writer = pd.ExcelWriter('/Users/ziweishi/Desktop/WAUSI_Summary.xlsx', engine='xlsxwriter')
     df_tra_final.to_excel(writer, sheet_name='training_site_summary', index=False)
-    # tra_img_sum.to_excel(writer, sheet_name='training_subject_summary', index=False)
+    tra_img_sum.to_excel(writer, sheet_name='training_subject_summary', index=False)
     df_val_final.to_excel(writer, sheet_name='validation_site_summary', index=False)
-    # val_img_sum.to_excel(writer, sheet_name='validation_subject_summary', index=False)
+    val_img_sum.to_excel(writer, sheet_name='validation_subject_summary', index=False)
 
     writer.close()
 

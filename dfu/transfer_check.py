@@ -20,6 +20,8 @@ def parse_date(x):
         eval = np.nan
     return eval
 
+
+#running select join in each site database
 def server_table_output(sql_path,site):
     connection = pymysql.connect(
         host='127.0.0.1',
@@ -30,18 +32,12 @@ def server_table_output(sql_path,site):
     )
     cursor = connection.cursor()
 
-
-
-
     query1 = "select * from imagescollection left join injury on imagescollection.INJURYID=injury.INJURYID join patient on injury.PID = patient.PID"
     cursor.execute(query1)
     collection_result = cursor.fetchall()
     df = pd.DataFrame(collection_result)
 
     df["CaptureDate"]=df["CreateDateTime"].apply(lambda x: str(x))
-
-
-
 
     query2 = "select * from imagescollection left join images on imagescollection.IMCOLLID=images.IMCOLLID"
     cursor.execute(query2)
@@ -112,7 +108,7 @@ def server_table_output(sql_path,site):
     connection.close()
     return df,df2,site,check_path
 
-
+#check guid exist in cloud
 def guid_check(db,df,site,check_path):
     check_list = df["ImgCollGUID"].to_list()
     db_list = db["ImgCollGUID"].to_list()
@@ -147,7 +143,7 @@ def guid_check(db,df,site,check_path):
     df_guid.to_excel(status_file)
     return df_guid
 
-
+#check image exist in cloud
 def image_check(db,df,df2,site,check_path):
     df_guid = guid_check(db,df,site,check_path)
     guid = df_guid["ImgCollGUID"].to_list()
@@ -285,7 +281,7 @@ def image_check(db,df,df2,site,check_path):
     df_guid.to_excel(image_status_file)
     return df_guid
 
-
+#refresh device database with the latest database sql file
 def refresh_sql_database():
     local_site = ["nynw", "ocer", "whfa", "youngst", "lvrpool", "memdfu", "hilloh", "grovoh", "mentoh", "encinogho",
                   "lahdfu"]

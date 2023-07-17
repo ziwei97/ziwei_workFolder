@@ -22,7 +22,7 @@ def dfu_sql_find(site_list):
         cur_info_list[site] = path+sql
     a = input("request fresh sql base?")
 
-    if a !="no":
+    if a =="yes":
         if os.path.isdir(path) == True:
             shutil.rmtree(path)
         os.mkdir(path)

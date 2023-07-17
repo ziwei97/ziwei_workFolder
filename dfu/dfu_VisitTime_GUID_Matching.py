@@ -7,6 +7,7 @@ import toyin_castor_check
 import boto3
 import dfu_summary
 
+
 s3 = boto3.resource('s3')
 dynamodb = boto3.resource('dynamodb')
 
@@ -226,6 +227,7 @@ def time_table_transfer(update_date):
         time_date = time_set["Castor_Date"].to_list()
         matched_date = []
         date_none = []
+        temp=[]
         for x in time_date:
             date_list = []
             if "none" not in str(x):
@@ -243,7 +245,7 @@ def time_table_transfer(update_date):
                 time_match.append(date_none)
     data1 = zip(list_b, time_order, visit_b,time_match)
     matched_timetable = pd.DataFrame(data=data1, columns=["SubjectID", "VisitTime", "Castor_Date","Match_Date"])
-    matched_timetable.to_excel("/Users/ziweishi/Downloads/check.xlsx")
+    matched_timetable.to_excel("/Users/ziweishi/Downloads/time.xlsx")
 
 
     #step 4 append guid to sub+castor+match device with key sub+device date
@@ -257,6 +259,7 @@ def time_table_transfer(update_date):
     data = zip(sub_cri, guid_list)
     df = pd.DataFrame(data=data, columns=["sub_time", "guid"])
     df1 = df.groupby('sub_time')['guid'].apply(list).reset_index(name='new')
+    df1.to_excel("/Users/ziweishi/Downloads/check1.xlsx")
 
     list_sub = matched_timetable["SubjectID"].to_list()
     list_time1 = matched_timetable["Match_Date"].to_list()
@@ -266,6 +269,7 @@ def time_table_transfer(update_date):
             i = str(i)
             # i = i.strip('][').split(',')
             i = i.replace("'", "")
+            i = i.replace(" ", "")
             i = i.replace("[", "")
             i = i.replace("]", "")
             i = i.split(",")
@@ -291,25 +295,30 @@ def time_table_transfer(update_date):
     total_none_match=0
     sub_status=[]
 
+
+
     for i in range(len(list_com)):
-        list_guid_pic = []
         subjectid = list_b[i]
         visit_time = time_order[i]
         sta = status[subjectid]
         sub_status.append(sta)
-        num=0
+        list_guid_pic = []  # 创建用于存储所有迭代结果的列表
 
         for j in list_com[i]:
             try:
                 sub_set = df1[df1["sub_time"] == j]
-                value = sub_set["new"].iloc[0]
+                value_list = sub_set["new"].iloc[0]
+                # print(len(value_list))
+                for r in value_list:
+                    list_guid_pic.append(r)
             except:
-                value = []
-            if len(value) > 0:
-                for p in value:
-                    num+=1
-                    list_guid_pic.append(p) #add guid to sub+time key pair
+                list_guid_pic= list_guid_pic
+
+
+        num = len(list_guid_pic)
+
         list_guid.append(list_guid_pic)
+
         num_list.append(num)
         if "none" in visit_time:
             total_none_match+=num
@@ -324,6 +333,9 @@ def time_table_transfer(update_date):
                 cap_date = cap_date_set["VisitDate"].iloc[0]
                 capture_date.append(cap_date)
                 castor_date.append(visit_b[i])
+
+
+
 
 
 
@@ -399,5 +411,5 @@ def time_table_transfer(update_date):
 
 
 if __name__ == "__main__":
-    time_table_transfer("20230705")
+    time_table_transfer("20230717")
 
