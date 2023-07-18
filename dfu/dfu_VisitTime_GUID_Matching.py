@@ -180,20 +180,26 @@ def time_table_transfer(update_date):
         os.mkdir(path)
 
     #step 1 return subject list
-    # #training toyin
-    # vt1 = toyin_castor_check.clean_track(update_date)
+    #training toyin
+    vt1 = toyin_castor_check.clean_track(update_date)
 
-    #validation toyin
-    vt1 = toyin_castor_check.clean_validation_track(update_date)
+    # #validation toyin
+    # vt1 = toyin_castor_check.clean_validation_track(update_date)
+
+
     vt = vt1[0]
     issue = vt1[1]
     status = vt1[2]
+
     ##training
-    # db_info = clean_dfu_db(update_date)
+    db_info = clean_dfu_db(update_date)
 
     #validation
     vt_sub = vt["SubjectID"].to_list()
-    db_info = clean_validation_dfu_db(update_date,vt_sub)
+    # db_info = clean_validation_dfu_db(update_date,vt_sub)
+
+
+
     sub = db_info[0]
     list_b = []
     time_order = []
@@ -258,7 +264,7 @@ def time_table_transfer(update_date):
         sub_cri.append(cri)
     data = zip(sub_cri, guid_list)
     df = pd.DataFrame(data=data, columns=["sub_time", "guid"])
-    df1 = df.groupby('sub_time')['guid'].apply(list).reset_index(name='new')
+    df1 = df.groupby('sub_time',group_keys=False)['guid'].apply(list).reset_index(name='new')
     df1.to_excel("/Users/ziweishi/Downloads/check1.xlsx")
 
     list_sub = matched_timetable["SubjectID"].to_list()
@@ -410,6 +416,13 @@ def time_table_transfer(update_date):
     return df_final
 
 
+
+
+
+
+
+
+
 if __name__ == "__main__":
-    time_table_transfer("20230717")
+    time_table_transfer("20230718")
 

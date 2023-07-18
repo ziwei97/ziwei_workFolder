@@ -261,7 +261,7 @@ def os_file_check(path):
 
 if __name__ == "__main__":
     bucket_name = "spectralmd-datashare"
-    prefix_name = "DataScience/GroundTruth_Pseudo_0620/"
+    prefix_name = "DataScience/DFU_Phase_2_Masks_2023-07-17/"
     file_num_check(bucket_name,prefix_name)
 
 
