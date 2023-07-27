@@ -8,8 +8,8 @@ import boto3.s3.transfer as s3transfer
 s3 = boto3.resource('s3')
 dynamodb = boto3.resource('dynamodb')
 
-# table_name = 'BURN_Master_ImageCollections'
-# table = dynamodb.Table(table_name)
+table_name = 'BURN_Master_ImageCollections'
+table = dynamodb.Table(table_name)
 
 
 def get_attribute(table,guid,attr):
@@ -96,7 +96,7 @@ def wasp_data_prepare(excel_path,attrs,prefix):
 
 def wausi_data_prepare(df,attrs,prefix):
     s3_client = boto3.client("s3", config=Config(max_pool_connections=50))
-    table_name = 'DFU_Master_ImageCollections'
+    table_name = 'BURN_Master_ImageCollections'
     table = dynamodb.Table(table_name)
     transfer_config = s3transfer.TransferConfig(
         use_threads=True,
@@ -107,50 +107,51 @@ def wausi_data_prepare(df,attrs,prefix):
     index = 0
     guid = df["ImgCollGUID"].to_list()
     sub = df["SubjectID"].to_list()
-    sv = df["VisitTime"].to_list()
+    wound = df["Wound"].to_list()
+    # sv = df["VisitTime"].to_list()
     try:
         for i in guid:
             print(index)
             subject = sub[index]
-            sv_n = sv[index]
+            wo = wound[index]
+            # sv_n = sv[index]
             bucket = get_attribute(table, i, "Bucket")
             index += 1
             for j in attrs:
-                label = get_attribute(table, i, j)
-                for a in label:
-                    a_source = a
-                    copy_source = {
-                        'Bucket': bucket,
-                        'Key': a_source
-                    }
-                    a = a.split("/")[-1]
-                    a_source_pseduo = prefix + subject + "/" + i + "/" + a
-                    dest_source = {
-                        'Bucket': 'spectralmd-datashare',
-                        'Key': a_source_pseduo
-                    }
-                    s3t.copy(copy_source=copy_source, bucket=dest_source["Bucket"],key = dest_source["Key"])
-    except Exception as err:
-        issue.append(i + " " + j + " " + "Missing")
-        print(err)
+                try:
+                    label = get_attribute(table, i, j)
+                    for a in label:
+                        a_source = a
+                        copy_source = {
+                            'Bucket': bucket,
+                            'Key': a_source
+                        }
+                        a = a.split("/")[-1]
 
+                        # a_source_pseduo = prefix  + i + "/" + a
+                        a_source_pseduo = prefix + subject + "/" + str(wo)+"/"+ i + "/" + a
+
+                        dest_source = {
+                            'Bucket': 'spectralmd-datashare',
+                            'Key': a_source_pseduo
+                        }
+
+                        s3t.copy(copy_source=copy_source, bucket=dest_source["Bucket"], key=dest_source["Key"])
+
+                except:
+                    print(i+" no "+j)
+    except Exception as err:
+        issue.append(err)
     finally:
         s3t.shutdown()
 
 
-
-
-def epoc_data_prepare(excel_path,attrs,prefix):
+def epoc_data_prepare(df,attrs,prefix):
     table_name = 'BURN_Master_ImageCollections'
     table = dynamodb.Table(table_name)
-    df = pd.read_excel(excel_path)
     guid = df["ImgCollGUID"].to_list()
-    # sub = df["SubjectID"].to_list()
-
-
+    sub = df["SubjectID"].to_list()
     issue = []
-
-
     index = 0
     for i in guid:
         # subject = sub[index]
@@ -172,7 +173,6 @@ def epoc_data_prepare(excel_path,attrs,prefix):
                     }
                     test_copy.s3_copy(copy_source, dest_source)
                     # s3.meta.client.copy(copy_source, 'spectralmd-datashare', a_source_pseduo)
-
             except:
                 # issue.append(i + " " + j + " " + "Missing")
                 print(str(index)+" "+i+" "+j)
@@ -238,7 +238,7 @@ def simple_data_upload(corpus,folder,prefix):
 #         index += 1
 
 
-def mask_prepare(excel_path,attrs,prefix):
+def mask_prepare(df,attrs,prefix):
     s3_client = boto3.client("s3", config=Config(max_pool_connections=50))
     table_name = 'DFU_Master_ImageCollections'
     table = dynamodb.Table(table_name)
@@ -250,7 +250,7 @@ def mask_prepare(excel_path,attrs,prefix):
     issue = []
     index = 0
 
-    df = pd.read_excel(excel_path)
+    # df = pd.read_excel(excel_path)
     guid = df["ImgCollGUID"].to_list()
 
     s3t = s3transfer.create_transfer_manager(s3_client, transfer_config)
@@ -271,20 +271,22 @@ def mask_prepare(excel_path,attrs,prefix):
                     # a = a.split("/")[-1]
                     if j == "Assessing":
                         a_source_pseduo = prefix + "Assessing/Assessing_" + i + ".png"
+                        dest_source = {
+                            'Bucket': 'spectralmd-datashare',
+                            'Key': a_source_pseduo
+                        }
+                        s3t.copy(copy_source=copy_source, bucket=dest_source["Bucket"], key=dest_source["Key"])
                     elif j == "PseudoColor":
                         a_source_pseduo = prefix + "PseudoColor/PseudoColor_" + i + ".tif"
+                        dest_source = {
+                            'Bucket': 'spectralmd-datashare',
+                            'Key': a_source_pseduo
+                        }
+                        s3t.copy(copy_source=copy_source, bucket=dest_source["Bucket"], key=dest_source["Key"])
                     else:
                         print("no attributes")
-
-                    dest_source = {
-                        'Bucket': 'spectralmd-datashare',
-                        'Key': a_source_pseduo
-                    }
-                    s3t.copy(copy_source=copy_source, bucket=dest_source["Bucket"], key=dest_source["Key"])
             except:
                 print(i + " missing " + j)
-
-
 
     s3t.shutdown()
 
@@ -299,7 +301,6 @@ def mask_download(excel_path,folder):
         use_threads=True,
         max_concurrency=20,
     )
-
     s3t = s3transfer.create_transfer_manager(s3_client, transfer_config)
     index=0
     for i in guid:
@@ -319,7 +320,7 @@ def mask_download(excel_path,folder):
                 s3t.download(bucket, j, file_path)
             except:
                 file_name = pseudo_key.split("/")[-1]
-                file_name = "fake_"+file_name
+                file_name = "fake_" + file_name
                 file_path = os.path.join(guid_path, file_name)
                 s3t.download(bucket, pseudo_key, file_path)
 
@@ -330,18 +331,61 @@ def mask_download(excel_path,folder):
     print("done")
 
 if __name__ == "__main__":
-    attrs=["PseudoColor"]
-    prefix="DataScience/GroundTruth_Pseudo_0620/"
+    attrs=["FinalTruth"]
+    prefix="DataScience/Burn_blister_0727/"
 
-    subject=""""""
+    # path ="/Users/ziweishi/Downloads/Blisters_BTS_Patients_SubjectIDs_Sahana_07.25.2023.csv"
+    # df = pd.read_csv(path)
+    # sub = df["Subject ID"].to_list()
+    #
+    #
+    #
+    #
+    # ref_path = "/Users/ziweishi/Desktop/All_Phase_BURN.xlsx"
+    # ref = pd.read_excel(ref_path)
+    # ref = ref[ref["new_excluded"].isna()]
+    #
+    # ref = ref[ref["Status"]=="acquired"]
+    # ref = ref[ref["Tags"].isna()]
+    #
+    # table_name = 'BURN_Master_ImageCollections'
+    # table = dynamodb.Table(table_name)
+    #
+    #
+    #
+    #
+    #
+    # df_final= ref[ref["SubjectID"].isin(sub)]
+    #
+    # df_final =df_final.reset_index()
+    # df_final =df_final.iloc[:,2:]
 
-    subject_list = subject.split("\n")
+    # guid = df_final["ImgCollGUID"].to_list()
+    # mask_list=[]
 
-    df = pd.read_excel("/Users/ziweishi/Documents/DFU_regular_update/20230620/20230620_Guid_list.xlsx")
+    # for i in guid:
+    #     mask = get_attribute(table,i,"Mask")
+    #     mask_list.append(mask)
+    #
+    # df_final["Mask"] = mask_list
+    #
+    df_final = pd.read_excel("/Users/ziweishi/Desktop/Burn_blister.xlsx")
 
-    df = df[df["SubjectID"].isin(subject_list)]
+    print(len(df_final))
 
-    wausi_data_prepare(df,attrs,prefix)
+
+
+
+
+
+
+    wausi_data_prepare(df_final,attrs,prefix)
+
+
+    # mask_prepare(df,attrs,prefix)
+
+    # path= "/Users/ziweishi/Desktop/file_check.xlsx"
+    # mask_download(path,"/Users/ziweishi/Desktop/Phase3_fix/")
 
 
 

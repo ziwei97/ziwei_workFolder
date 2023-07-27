@@ -5,6 +5,57 @@ import numpy as np
 import get_sql_from_smb as sql_get
 from util import download_whole_dynamodb_table
 
+#refresh device database with the latest database sql file
+def refresh_sql_database(check_list):
+    local_site = ["nynw", "ocer", "whfa", "youngst", "lvrpool", "memdfu", "hilloh", "grovoh", "mentoh", "encinogho",
+                  "lahdfu"]
+    s3_site = ["rsci"]
+    site_list = {}
+    for i in check_list:
+        site_list[i] = {}
+        if i in local_site:
+            site_list[i]["type"] = "local"
+        elif i in s3_site:
+            site_list[i]["type"] = "s3"
+        else:
+            print("wrong site")
+
+    sql_path = sql_get.dfu_sql_find(site_list)
+    b = input("refresh database for each site?")
+
+    for i in check_list:
+        site_list[i]["sql_path"] = sql_path[i]
+        print(i+" "+sql_path[i])
+
+        if b == "yes":
+            connection = pymysql.connect(
+                host='127.0.0.1',
+                user='root',
+                password='szw970727',
+                database=i,
+                cursorclass=pymysql.cursors.DictCursor
+            )
+            cursor = connection.cursor()
+
+            # 打开SQL文件并执行其中的SQL语句
+            with open(sql_path[i], 'r') as sql_file:
+                sql_statements = sql_file.read().split(';')
+                for statement in sql_statements:
+                    if statement.strip():
+                        cursor.execute(statement)
+            # 提交更改
+            connection.commit()
+            cursor.close()
+            connection.close()
+
+
+    a = input("is the path right? ")
+    if a !="no":
+        return site_list
+    else:
+        return False
+
+
 
 def has_element(value,element_list):
     for i in element_list:
@@ -32,10 +83,12 @@ def server_table_output(sql_path,site):
     )
     cursor = connection.cursor()
 
-    query1 = "select * from imagescollection left join injury on imagescollection.INJURYID=injury.INJURYID join patient on injury.PID = patient.PID"
+    query1 = "select * from imagescollection left join injury on imagescollection.INJURYID = injury.INJURYID left join patient on injury.PID = patient.PID"
     cursor.execute(query1)
     collection_result = cursor.fetchall()
     df = pd.DataFrame(collection_result)
+    print(len(df))
+    df.to_excel("/Users/ziweishi/Desktop/check.xlsx")
 
     df["CaptureDate"]=df["CreateDateTime"].apply(lambda x: str(x))
 
@@ -61,8 +114,8 @@ def server_table_output(sql_path,site):
     else:
         element_list = ["0000", "99"]
 
-    df = df[~df["MedicalNumber"].apply(lambda x: has_element(x, element_list))]
 
+    df = df[~df["MedicalNumber"].apply(lambda x: has_element(x, element_list))]
 
     if site == "whfa":
         df["MedicalNumber"] = df["MedicalNumber"].apply(lambda x: "203-" + x)
@@ -281,69 +334,18 @@ def image_check(db,df,df2,site,check_path):
     df_guid.to_excel(image_status_file)
     return df_guid
 
-#refresh device database with the latest database sql file
-def refresh_sql_database():
-    local_site = ["nynw", "ocer", "whfa", "youngst", "lvrpool", "memdfu", "hilloh", "grovoh", "mentoh", "encinogho",
-                  "lahdfu"]
-    s3_site = ["rsci"]
-    total_site = local_site + s3_site
-    site_list = {}
-    for i in total_site:
-        site_list[i] = {}
-        if i in local_site:
-            site_list[i]["type"] = "local"
-        else:
-            site_list[i]["type"] = "s3"
-
-    sql_path = sql_get.dfu_sql_find(site_list)
-
-    for i in total_site:
-        site_list[i]["sql_path"] = sql_path[i]
-        print(i + " " + sql_path[i])
-        connection = pymysql.connect(
-            host='127.0.0.1',
-            user='root',
-            password='szw970727',
-            cursorclass=pymysql.cursors.DictCursor
-        )
-        cursor = connection.cursor()
-
-        try:
-            cursor.execute("CREATE DATABASE " + i)
-        except:
-            print("database " + i + " already exist")
-
-        cursor.execute("use "+i)
-
-        path = sql_path[i]
-        with open(path, 'r') as file:
-            query = file.read()
-        statements = query.split(';')
-        # Execute each statement
-        for statement in statements:
-            cursor.execute(statement)
-
-    a = input("is the path right? ")
-    if a !="no":
-        return site_list
-    else:
-        return False
-
-
-
-
-
 
 
 
 if __name__ =="__main__":
 
-    site_list = refresh_sql_database()
-    # local_site = ["nynw", "ocer", "whfa", "youngst", "lvrpool", "memdfu", "hilloh", "grovoh", "mentoh", "encinogho","lahdfu","rsci"]
 
+    # local_site = ["nynw", "ocer", "whfa", "youngst", "lvrpool", "memdfu", "hilloh", "grovoh", "mentoh", "encinogho","lahdfu","rsci"]
+    check_site = [ "mentoh"]
+    check_list = {}
+
+    site_list = refresh_sql_database(check_site)
     if site_list !=False:
-        check_site = ["nynw", "ocer", "whfa", "youngst", "lvrpool", "memdfu", "hilloh", "grovoh", "mentoh", "encinogho","lahdfu","rsci"]
-        check_list = {}
         for check in check_site:
             check_list[check] = site_list[check]
 
@@ -358,10 +360,12 @@ if __name__ =="__main__":
             data_sites.append(df_guid)
 
         union_df = pd.concat(data_sites)
-        union_df.to_excel("/Users/ziweishi/Desktop/dfu_check.xlsx")
+        union_df.to_excel("/Users/ziweishi/Desktop/dfu_site_check.xlsx")
 
     else:
         print("Wrong Path!")
+
+
 
 
 

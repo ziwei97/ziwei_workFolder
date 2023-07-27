@@ -105,6 +105,7 @@ def num_check():
         num_initial = {p: 0 for p in attrs}
 
         for j in file_sub:
+            print(j)
             if j[0:4] == "Raw_" or j[0:4] == "MSI_":
                 num_initial["Raw"] += 1
             if j[0:9] == "Assessing":
@@ -201,7 +202,6 @@ def mask_check(bucket_name,prefix_name):
     guid_info={}
     type_info=[]
     for i in list:
-
         file_list = i.split("/")
         type=file_list[-2]
         if type not in type_info:
@@ -227,7 +227,6 @@ def mask_check(bucket_name,prefix_name):
                 type_column[x].append(info[x])
             except:
                 type_column[x].append(np.nan)
-
 
 
     df = pd.DataFrame(type_column)
@@ -261,7 +260,9 @@ def os_file_check(path):
 
 if __name__ == "__main__":
     bucket_name = "spectralmd-datashare"
-    prefix_name = "DataScience/DFU_Phase_2_Masks_2023-07-17/"
+    prefix_name = "DataScience/Burn_blister_0727/"
+
+    # mask_check(bucket_name,prefix_name)
     file_num_check(bucket_name,prefix_name)
 
 

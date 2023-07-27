@@ -20,7 +20,7 @@ def dfu_sql_find(site_list):
         info = sql.split("_")
         site = info[0]
         cur_info_list[site] = path+sql
-    a = input("request fresh sql base?")
+    a = input("get latest sql file for each site?")
 
     if a =="yes":
         if os.path.isdir(path) == True:
@@ -35,21 +35,24 @@ def dfu_sql_find(site_list):
         smb_connection.connect("192.168.110.252", 445)
         info_list = {}
 
+
         for site in site_list.keys():
             if site_list[site]["type"] == "local":
                 try:
                     shared_folder_name = 'DFU'
                     site_sql_fold = "/DataTransfers/" + site + "/DFU_SS/"
                     file_list = smb_connection.listPath(shared_folder_name, site_sql_fold)
+
                     filter_keywords = [".", "with", "Mock"]
                     file_names = [file.filename for file in file_list if
                                   all(keyword not in file.filename for keyword in filter_keywords)]
+
                     max_time = datetime(2020, 1, 1)
                     max_file = 0
                     tag = ""
                     for i in file_names:
                         a = i.replace("-", "_")
-                        # print(a)
+
                         if "full" in a:
                             max_file = i
                             tag = "full"
@@ -69,6 +72,8 @@ def dfu_sql_find(site_list):
                             else:
                                 max_time = max_time
 
+
+
                     max_sql_fold = site_sql_fold + max_file + "/SpectralView/dvsspdata.sql"
                     local_path = "/Users/ziweishi/Documents/transfer_regular_check/0_sql_file/" + site + "_" + tag + "_dvsspdata.sql"
                     with open(local_path, 'wb') as local_file:
@@ -81,7 +86,6 @@ def dfu_sql_find(site_list):
                 tag = "temp1"
                 local_path = "/Users/ziweishi/Documents/transfer_regular_check/0_sql_file/" + site + "_" + tag + "_dvsspdata.sql"
                 s3.Bucket("spectralmd-uk").download_file(s3_path, local_path)
-
                 info_list[site] = local_path
         smb_connection.close()
         return info_list
@@ -90,5 +94,5 @@ def dfu_sql_find(site_list):
 
 
 if __name__ == "__main__":
-    dfu_sql_find({'hilloh': {'type': 'local'}})
+    print(dfu_sql_find({'mentoh': {'type': 'local'}}))
 

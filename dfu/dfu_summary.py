@@ -7,15 +7,12 @@ import numpy as np
 
 
 def output_total():
-
     a = input("new output?")
-
     if a =="yes":
-        site_list = transfer_check.refresh_sql_database()
+        check_site = ["nynw", "ocer", "whfa", "youngst", "lvrpool", "memdfu", "hilloh", "grovoh", "mentoh",
+                      "encinogho", "lahdfu", "rsci"]
+        site_list = transfer_check.refresh_sql_database(check_site)
         if site_list != False:
-            check_site = ["nynw", "ocer", "whfa", "youngst", "lvrpool", "memdfu", "hilloh", "grovoh", "mentoh",
-                          "encinogho",
-                          "lahdfu", "rsci"]
             check_list = {}
             for check in check_site:
                 check_list[check] = site_list[check]
@@ -26,14 +23,7 @@ def output_total():
                 data_sites.append(df_guid)
 
             union_df = pd.concat(data_sites)
-
-            validation = pd.read_excel(
-                "/Users/ziweishi/Downloads/WAUSI Completion Tracker Data Analysis 4-14-2023.xlsx",
-                sheet_name="Validation Dataset")
-            val = validation["Subject ID"].to_list()
-            union_df = union_df[union_df["MedicalNumber"].isin(val)]
             union_df.to_excel("/Users/ziweishi/Desktop/dfu_check.xlsx")
-            print(len(union_df))
             return union_df
         else:
             print("Wrong Path!")
@@ -43,58 +33,24 @@ def output_total():
 
 
 
-def output_all_total():
-
-    a = input("new all output?")
-
-    if a =="yes":
-        site_list = transfer_check.refresh_sql_database()
-        if site_list != False:
-            check_site = ["nynw", "ocer", "whfa", "youngst", "lvrpool", "memdfu", "hilloh", "grovoh", "mentoh",
-                          "encinogho",
-                          "lahdfu", "rsci"]
-            check_list = {}
-            for check in check_site:
-                check_list[check] = site_list[check]
-            data_sites = []
-            for i in check_list.keys():
-                path = check_list[i]["sql_path"]
-                df_guid, df_image, site, check_path = transfer_check.server_table_output(path, i)
-                data_sites.append(df_guid)
-
-            union_df = pd.concat(data_sites)
-            union_df.to_excel("/Users/ziweishi/Desktop/all_check.xlsx")
-
-            print(len(union_df))
-            return union_df
-        else:
-            print("Wrong Path!")
-    else:
-        df = pd.read_excel("/Users/ziweishi/Desktop/all_check.xlsx")
-        return df
-
-
 def subject_info():
-    tr_src =  pd.read_excel("/Users/ziweishi/Desktop/validation.xlsx", sheet_name="Training Dataset")
-    vd_src = pd.read_excel("/Users/ziweishi/Desktop/validation.xlsx", sheet_name="Validation Dataset")
+    tr_src =  pd.read_excel("/Users/ziweishi/Downloads/WAUSI.xlsx", sheet_name="Training Dataset")
+    vd_src = pd.read_excel("/Users/ziweishi/Downloads/WAUSI.xlsx", sheet_name="Validation Dataset")
 
     tr = pd.DataFrame()
     tr["MedicalNumber"]=tr_src["Subject ID"].to_list()
     tr["Status"]= tr_src["Completed Study (or withdrawn/LTF)"].to_list()
     tr["site"] = tr["MedicalNumber"].apply(lambda x: x[0:3])
-    tr_info={"201":"nynw","202":"ocer","203":"whfa","204":"youngst","205":"lvrpool"}
+    tr_info={"201":"nynw","202":"ocer","203":"whfa","204":"youngst","205":"lvrpool","292":"rcsi"}
     tr["site_name"] = tr["site"].apply(lambda x: tr_info[x])
     tr["type"]="training"
-
-
-
 
     vd = pd.DataFrame()
     vd["MedicalNumber"] = vd_src["Subject ID"].to_list()
     vd["Status"] = vd_src["Completed Study (or withdrawn/LTF)"].to_list()
     vd["site"] = vd["MedicalNumber"].apply(lambda x: x[0:3])
-    vd_info = {"201": "nynw", "205": "lverpool", "206": "memdfu", "207": "hilloh", "208": "grovoh","209":"mentoh",
-               "210":"encinogho","211":"lahdfu","292":"rcsi"}
+    vd_info = {  "206": "memdfu", "207": "hilloh", "208": "grovoh","209":"mentoh",
+               "210":"encinogho","211":"lahdfu"}
     vd["site_name"] = vd["site"].apply(lambda x: vd_info[x])
     vd["type"] = "validation"
 
@@ -109,10 +65,10 @@ def subject_info():
 
 
 
-def make_summary():
+def make_summary(cur_date):
     # df_type = pd.read_excel("/Users/ziweishi/Desktop/wausi_subject.xlsx",sheet_name="total")
     df_type = subject_info()
-    df_guid = output_all_total()
+    df_guid = output_total()
     df = pd.merge(df_type,df_guid,on="MedicalNumber",how="left")
     df = df[df["ImgCollGUID"].notna()]
     # df.to_excel("/Users/ziweishi/Desktop/check.xlsx")
@@ -212,7 +168,10 @@ def make_summary():
     df_val_list = [val_site_sum, df_val_total]
     df_val_final = pd.concat(df_val_list)
 
-    writer = pd.ExcelWriter('/Users/ziweishi/Desktop/WAUSI_Summary.xlsx', engine='xlsxwriter')
+    file = "WAUSI_Summary_" + cur_date + ".xlsx"
+    path = "/Users/ziweishi/Desktop/DFU_Summary/" + file
+
+    writer = pd.ExcelWriter(path, engine='xlsxwriter')
     df_tra_final.to_excel(writer, sheet_name='training_site_summary', index=False)
     tra_img_sum.to_excel(writer, sheet_name='training_subject_summary', index=False)
     df_val_final.to_excel(writer, sheet_name='validation_site_summary', index=False)
@@ -221,7 +180,7 @@ def make_summary():
     writer.close()
 
 
-    workbook =load_workbook("/Users/ziweishi/Desktop/WAUSI_Summary.xlsx")
+    workbook =load_workbook(path)
 
     # 对每个 sheet 设置单元格居中
     for sheet in workbook.sheetnames:
@@ -231,7 +190,8 @@ def make_summary():
                 cell.alignment = Alignment(horizontal='center', vertical='center')
 
     # 保存更改后的 Excel 文件
-    workbook.save("/Users/ziweishi/Desktop/WAUSI_Summary.xlsx")
+
+    workbook.save(path)
 
 if __name__ =="__main__":
-    make_summary()
+    make_summary("072623")

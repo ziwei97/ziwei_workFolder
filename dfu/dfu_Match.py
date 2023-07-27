@@ -7,11 +7,8 @@ import toyin_castor_check
 import boto3
 import dfu_summary
 
-
 s3 = boto3.resource('s3')
 dynamodb = boto3.resource('dynamodb')
-
-
 
 def parse_date(x):
     try:
@@ -46,45 +43,7 @@ def fuzzy_date_match(date1, date2, day_range, date_format='%d-%m-%Y'):
         return True
     return False
 
-def clean_dfu_db(check_date):
-    guid = download_whole_dynamodb_table.download_table('DFU_Master_ImageCollections')
-    guid = guid[guid["StudyName"]=="DFU_SSP"]
-    guid = guid[['SubjectID', 'ImgCollGUID', 'CreateTimeStamp', 'Status','Tags','Mask','PseudoColor',"Assessing"]]
-    guid = guid[guid["Status"] == "acquired"]
-    guid = guid[guid["CreateTimeStamp"].notna()]
-    guid["VisitDate"] = guid[["CreateTimeStamp"]].apply(lambda x: parse_date((x['CreateTimeStamp'])), axis=1)
-    guid["UTC_Time"] =  guid[["CreateTimeStamp"]].apply(lambda x: parse_time((x['CreateTimeStamp'])), axis=1)
-
-    sub = guid[['SubjectID', 'ImgCollGUID', 'VisitDate',"UTC_Time","Tags","Mask","PseudoColor","Assessing"]]
-    list = sub["ImgCollGUID"].to_list()
-    time = sub["UTC_Time"].to_list()
-    tag = sub["Tags"].to_list()
-    mask = sub["Mask"].to_list()
-    pseudo = sub["PseudoColor"].to_list()
-    assessing=sub["Assessing"].to_list()
-    guid_time = {}
-    tags={}
-    masks={}
-    pseudos={}
-    assess={}
-    index=0
-    for i in list:
-        guid_time[i]=time[index]
-        tags[i]=tag[index]
-        masks[i]=mask[index]
-        pseudos[i]=pseudo[index]
-        assess[i]=assessing[index]
-        index+=1
-
-    path ="/Users/ziweishi/Documents/DFU_regular_update/"+check_date+"/database"+"_"+check_date+".xlsx"
-    sub.to_excel(path)
-    print("total device collection num is: " + str(len(sub)))
-
-
-    return sub,guid_time,tags,masks,pseudos,assess
-
-
-def clean_validation_dfu_db(check_date,sub_list):
+def clean_dfu_db(check_date,sub_list):
     db_info = download_whole_dynamodb_table.download_table('DFU_Master_ImageCollections')
     guid =  dfu_summary.output_total()
 
@@ -113,7 +72,6 @@ def clean_validation_dfu_db(check_date,sub_list):
             mask = db_sub["Mask"].iloc[0]
         except:
             mask = np.nan
-
         try:
             assess = db_sub["Assessing"].iloc[0]
         except:
@@ -170,18 +128,15 @@ def clean_validation_dfu_db(check_date,sub_list):
 
     return sub, guid_time, tags, masks, pseudos, assess
 
-
-
-
 def time_table_transfer(update_date):
     og_path = "/Users/ziweishi/Documents/DFU_regular_update/"
     path = os.path.join(og_path,update_date)
     if os.path.isdir(path)==False:
         os.mkdir(path)
 
-    #step 1 return subject list
+
     #training toyin
-    vt1 = toyin_castor_check.clean_track(update_date)
+    vt1 = toyin_castor_check.clean_training_track(update_date)
 
     # #validation toyin
     # vt1 = toyin_castor_check.clean_validation_track(update_date)
@@ -191,13 +146,8 @@ def time_table_transfer(update_date):
     issue = vt1[1]
     status = vt1[2]
 
-    ##training
-    db_info = clean_dfu_db(update_date)
-
-    #validation
     vt_sub = vt["SubjectID"].to_list()
-    # db_info = clean_validation_dfu_db(update_date,vt_sub)
-
+    db_info = clean_dfu_db(update_date,vt_sub)
 
 
     sub = db_info[0]
@@ -233,7 +183,6 @@ def time_table_transfer(update_date):
         time_date = time_set["Castor_Date"].to_list()
         matched_date = []
         date_none = []
-        temp=[]
         for x in time_date:
             date_list = []
             if "none" not in str(x):
@@ -412,7 +361,6 @@ def time_table_transfer(update_date):
     data_guid = zip(list_b, sub_status,time_order, visit_b, time_match, num_list,list_guid)
     df_final = pd.DataFrame(data=data_guid,columns=["SubjectID", "Status","VisitTime", "Castor_Date", "Match_Device_Date","Num_GUID", "ImgCollGUID"])
     df_final.to_excel(match_final_path)
-
     return df_final
 
 
@@ -424,5 +372,5 @@ def time_table_transfer(update_date):
 
 
 if __name__ == "__main__":
-    time_table_transfer("20230718")
+    time_table_transfer("20230728tra")
 

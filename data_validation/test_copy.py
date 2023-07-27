@@ -16,6 +16,11 @@ def s3_copy(src: dict, dest: dict):
     except Exception as err:
         print(err)
 
+    finally:
+        s3_tran.shutdown()
+
+
+
 
 
 

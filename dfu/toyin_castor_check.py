@@ -3,8 +3,8 @@ import numpy as np
 from datetime import datetime
 
 
-def clean_track(check_date):
-    toyin = pd.read_excel("/Users/ziweishi/Desktop/training.xlsx")
+def clean_training_track(check_date):
+    toyin = pd.read_excel("/Users/ziweishi/Downloads/WAUSI.xlsx",sheet_name="Training Dataset")
     df_toyin = pd.DataFrame()
     df_toyin["SubjectID"] = toyin["Subject ID"]
     df_toyin["status"] = toyin["Completed Study (or withdrawn/LTF)"]
@@ -70,9 +70,10 @@ def clean_track(check_date):
 
 
     df_toyin["Data Type"] = toyin["Data Type"]
-    status = ["Completed","Completed (LTF)","Withdrawn (SAE)"]
-    df_toyin = df_toyin[df_toyin["status"].isin(status)]
-    df_toyin = df_toyin[df_toyin["Data Type"]=="Training data"]
+
+    # status = ["Completed","Completed (LTF)","Withdrawn (SAE)"]
+    # df_toyin = df_toyin[df_toyin["status"].isin(status)]
+    # df_toyin = df_toyin[df_toyin["Data Type"]=="Training data"]
 
     issue ={}
     issue["202-018"]=["09-11-2022","21-11-2022"]
@@ -93,7 +94,7 @@ def clean_track(check_date):
 
 
 
-    path = "/Users/ziweishi/Documents/DFU_regular_update/"+check_date+"/toyin_filtered.xlsx"
+    path = "/Users/ziweishi/Documents/DFU_regular_update/"+check_date+"/toyin_tra_filtered.xlsx"
     df_toyin.to_excel(path)
 
     return df_toyin,issue,sub_sta
@@ -154,8 +155,6 @@ def clean_validation_track(check_date):
             column.append(visit)
             date_time_list = []
             for j in toyin[to_vis]:
-                # print(j)
-                # print(type(j))
                 if type(j) != float and str(j) != "NaT":
                     j = change_format(j)
                     date_time_list.append(j)
@@ -169,14 +168,8 @@ def clean_validation_track(check_date):
 
     # status = ["Completed","Completed (LTF)","Withdrawn (SAE)","withdrawn (LTF)","In progress"]
     # df_toyin = df_toyin[df_toyin["status"].isin(status)]
-    # df_toyin= df_toyin[df_toyin["SubjectID"]!="206-001"]
-    # df_toyin["SubjectID"] = df_toyin["SubjectID"].apply(
-    #     lambda x: x.replace("206-002", "206-001") if "206-002" in x else x)
-
 
     issue ={}
-
-
 
     subject_list = df_toyin["SubjectID"].to_list()
     status_list = df_toyin["status"].to_list()
@@ -187,15 +180,10 @@ def clean_validation_track(check_date):
         sub_sta[i] = status_list[index]
         index+=1
 
-
-
-    path = "/Users/ziweishi/Documents/DFU_regular_update/"+check_date+"/toyin_filtered.xlsx"
+    path = "/Users/ziweishi/Documents/DFU_regular_update/"+check_date+"/toyin_val_filtered.xlsx"
     df_toyin.to_excel(path)
 
     return df_toyin,issue,sub_sta
-
-
-
 
 
 

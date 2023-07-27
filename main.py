@@ -1,7 +1,11 @@
 import os
 import shutil
-
+import boto3
 import pandas as pd
+import data_validation.test_copy as ts_copy
+
+s3 = boto3.resource('s3')
+
 
 # key = "DataScience/WAUSI_SV0_0522/205-002/SV_1_Date/"
 # s3.Object('spectralmd-datashare', key).delete()
@@ -100,35 +104,66 @@ import pandas as pd
 #     p = i.split("_")
 #     print(p[0]+" "+p[1])
 
-path="/Users/ziweishi/Downloads/check1.xlsx"
-df = pd.read_excel((path))
+# path = "/Users/ziweishi/Documents/transfer_regular_check/rsci/temp1/rsci_image_log_out.xlsx"
+# df = pd.read_excel(path)
+#
+# path_ass = "/Users/ziweishi/Documents/DFU_regular_update/Phase3_Algorithm_Mask_comment.xlsx"
+# df_ass = pd.read_excel(path_ass)
+#
+# df1 = df[df["Assessing Issue"].isna()]
+#
+# guid = df1["ImgCollGUID"].to_list()
+# loc = df1["File_Location"].to_list()
+#
+# index=0
+#
+# for i in guid:
+#     loc_s3 = loc[index]
+#     index+=1
+#     print(index)
+#     loc_source = loc_s3.replace("\\","/")
+#     loc_source = loc_source.replace("D:","DataTransfer/WAUSI_Connolly_Hospital_Ireland/CONNOLLY_DFU_SMD2211-004_07_03_23")
+#     df_sub = df_ass[df_ass["ImgCollGUID"]==i]
+#     file = df_sub["Assessing"].iloc[0]
+#     file = file[2:-2]
+#     file = (file.split("/"))[-1]
+#     file = file.replace(".png",".tif")
+#     file = file.replace("Assessing_","")
+#     file_source =loc_source+"/"+file
+#
+#     # print(file_source)
+#
+#     copy_source={
+#         'Bucket':"spectralmd-uk" ,
+#         'Key': file_source}
+#
+#     dest_file = "Assessing_"+i+".png"
+#     dest_path = "DataScience/WAUSI_Pseudo_Assesing_0725/Assessing/"+dest_file
+#
+#     s3.meta.client.copy(copy_source, 'spectralmd-datashare', dest_path)
 
-time_list=df["sub_time"].to_list()
-
-list1=[["201-016 02-04-2023","201-016 05-03-2023"],["201-016 12-02-2023","201-016 12-03-2023"],["201-016 19-03-2023"],["201-016 26-02-2023"]]
-
-total_list=[]
-
-for i in list1:
-    value=[]
-    for j in i:
-        try:
-            df_sub = df[df["sub_time"] == j]
-            sub_list = df_sub["new"].iloc[0]
-            sub_list1 = sub_list[2:-2].split("', '")
-            print(len(sub_list1))
-            for p in sub_list1:
-                value.append(p)
-        except:
-            value=[]
 
 
-    total_list.append(value)
-    num = len(value)
-    print(num)
 
 
-for z in total_list:
-    print(len(z))
 
+
+
+
+
+
+
+# df.to_excel("/Users/ziweishi/Documents/compare.xlsx")
+
+
+path ="/Users/ziweishi/Documents/20230727tra_wausi_info.xlsx"
+df = pd.read_excel(path)
+
+df = df[df["Comments"]!="archived"]
+
+df= df.reset_index()
+
+df = df.iloc[:,3:]
+
+df.to_csv("/Users/ziweishi/Documents/phase3_wausi_info.csv")
 
