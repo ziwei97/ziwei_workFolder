@@ -240,7 +240,7 @@ def simple_data_upload(corpus,folder,prefix):
 
 def mask_prepare(df,attrs,prefix):
     s3_client = boto3.client("s3", config=Config(max_pool_connections=50))
-    table_name = 'DFU_Master_ImageCollections'
+    table_name = 'BURN_Master_ImageCollections'
     table = dynamodb.Table(table_name)
     transfer_config = s3transfer.TransferConfig(
         use_threads=True,
@@ -290,9 +290,8 @@ def mask_prepare(df,attrs,prefix):
 
     s3t.shutdown()
 
-def mask_download(excel_path,folder):
+def mask_download(df,folder):
     os.mkdir(folder)
-    df = pd.read_excel(excel_path)
     guid = df["ImgCollGUID"].to_list()
     assess = df["Assessing"].to_list()
     pseudo = df["PseudoColor"].to_list()
@@ -331,8 +330,8 @@ def mask_download(excel_path,folder):
     print("done")
 
 if __name__ == "__main__":
-    attrs=["FinalTruth"]
-    prefix="DataScience/Burn_blister_0727/"
+    attrs=["PseudoColor"]
+    prefix="DataScience/Burn_blister_0731/"
 
     # path ="/Users/ziweishi/Downloads/Blisters_BTS_Patients_SubjectIDs_Sahana_07.25.2023.csv"
     # df = pd.read_csv(path)
@@ -369,17 +368,17 @@ if __name__ == "__main__":
     #
     # df_final["Mask"] = mask_list
     #
-    df_final = pd.read_excel("/Users/ziweishi/Desktop/Burn_blister.xlsx")
+    df = pd.read_excel("/Users/ziweishi/Downloads/Burn_blister.xlsx")
 
-    print(len(df_final))
-
-
+    print(len(df))
 
 
 
 
 
-    wausi_data_prepare(df_final,attrs,prefix)
+
+
+    # wausi_data_prepare(df_final,attrs,prefix)
 
 
     # mask_prepare(df,attrs,prefix)

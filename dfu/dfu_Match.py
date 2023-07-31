@@ -60,6 +60,7 @@ def clean_dfu_db(check_date,sub_list):
     mask_list=[]
     assessing_list=[]
     tag_list=[]
+    phase_list=[]
     index=0
     for gu in guid_id:
         db_sub = db_info[db_info["ImgCollGUID"]==gu]
@@ -67,6 +68,11 @@ def clean_dfu_db(check_date,sub_list):
             pseudo = db_sub["PseudoColor"].iloc[0]
         except:
             pseudo = np.nan
+
+        try:
+            phase = db_sub["phase"].iloc[0]
+        except:
+            phase = np.nan
 
         try:
             mask = db_sub["Mask"].iloc[0]
@@ -86,6 +92,7 @@ def clean_dfu_db(check_date,sub_list):
         mask_list.append(mask)
         assessing_list.append(assess)
         tag_list.append(tag)
+        phase_list.append(phase)
         # print(index)
         index+=1
 
@@ -93,8 +100,9 @@ def clean_dfu_db(check_date,sub_list):
     guid['Mask'] = mask_list
     guid['Assessing'] =assessing_list
     guid['Tags'] = tag_list
+    guid["phase"] = phase_list
 
-    sub = guid[['SubjectID', 'ImgCollGUID', 'VisitDate',"UTC_Time","Tags","Mask","PseudoColor","Assessing"]]
+    sub = guid[['SubjectID', 'ImgCollGUID', 'VisitDate',"UTC_Time","Tags","Mask","PseudoColor","Assessing","phase"]]
     # sub["SubjectID"] = sub["SubjectID"].apply(lambda x: x.replace("206-001", "206-002") if "206-001" in x else x)
     sub_copy = sub.copy()
     sub_copy.loc[sub_copy["SubjectID"].str.contains("206-001"), "SubjectID"] = sub_copy.loc[
@@ -108,11 +116,13 @@ def clean_dfu_db(check_date,sub_list):
     mask = sub["Mask"].to_list()
     pseudo = sub["PseudoColor"].to_list()
     assessing=sub["Assessing"].to_list()
+    phase = sub["phase"].to_list()
     guid_time = {}
     tags={}
     masks={}
     pseudos={}
     assess={}
+    phases={}
     index=0
     for i in list:
         guid_time[i]=time[index]
@@ -120,13 +130,14 @@ def clean_dfu_db(check_date,sub_list):
         masks[i]=mask[index]
         pseudos[i]=pseudo[index]
         assess[i]=assessing[index]
+        phases[i]=phase[index]
         index+=1
 
     path ="/Users/ziweishi/Documents/DFU_regular_update/"+check_date+"/database"+"_"+check_date+".xlsx"
     sub.to_excel(path)
     print("total device collection num is: " + str(len(sub)))
 
-    return sub, guid_time, tags, masks, pseudos, assess
+    return sub, guid_time, tags, masks, pseudos, assess,phases
 
 def time_table_transfer(update_date):
     og_path = "/Users/ziweishi/Documents/DFU_regular_update/"
@@ -250,6 +261,10 @@ def time_table_transfer(update_date):
     total_none_match=0
     sub_status=[]
 
+    none_match_subject=[]
+    none_match_guid=[]
+    none_cap_date=[]
+
 
 
     for i in range(len(list_com)):
@@ -277,6 +292,13 @@ def time_table_transfer(update_date):
         num_list.append(num)
         if "none" in visit_time:
             total_none_match+=num
+            for u in list_guid_pic:
+                none_match_subject.append(subjectid)
+                none_match_guid.append(u)
+                none_date_set = sub[sub["ImgCollGUID"]==h]
+                none_date = none_date_set["VisitDate"].iloc[0]
+                none_cap_date.append(none_date)
+
 
         #add guid to output matched guid file
         if "none" not in visit_time:
@@ -301,6 +323,7 @@ def time_table_transfer(update_date):
     mask_info=db_info[3]
     pseudo_info = db_info[4]
     assess_info = db_info[5]
+    phase_info = db_info[6]
     list_file_name = str(update_date) + "_Guid_list.xlsx"
     list_final_path = os.path.join(path, list_file_name)
     final_guid = zip(subjectid_list,visitime_list,castor_date,capture_date,guid_final_list)
@@ -312,6 +335,7 @@ def time_table_transfer(update_date):
     mask_db=[]
     pseudo_db=[]
     assess_db=[]
+    phase_db=[]
     status_final=[]
     out_num=0
     for i in guid_final_list:
@@ -336,7 +360,7 @@ def time_table_transfer(update_date):
         mask_db.append(mask_info[i])
         pseudo_db.append(pseudo_info[i])
         assess_db.append(assess_info[i])
-
+        phase_db.append(phase_info[i])
         index+=1
 
 
@@ -348,10 +372,27 @@ def time_table_transfer(update_date):
     final_guid_df["Mask"]=mask_db
     final_guid_df["PseudoColor"]=pseudo_db
     final_guid_df["Assessing"] = assess_db
+    final_guid_df["phase"]=phase_db
     final_guid_df.to_excel(list_final_path)
     print("total matched guid num: " +str(len(guid_final_list)))
     print("total non-matched guid num: " + str(total_none_match))
     print("total out off 12 weeks guid num: " + str(out_num))
+
+    list_download_name = str(update_date) + "_download_list.xlsx"
+    list_download_path = os.path.join(path, list_download_name)
+    final_download_df = final_guid_df[final_guid_df["phase"].isna()]
+    final_download_df.to_excel(list_download_path)
+
+
+
+    final_none_match = zip(none_match_subject,none_match_guid,none_cap_date)
+    final_none_df = pd.DataFrame(final_none_match,columns=["SubjectID","ImgCollGUID","VisitTime"])
+    list_none_name = str(update_date) + "_none_match_list.xlsx"
+    list_none_path = os.path.join(path, list_none_name)
+    final_none_df.to_excel(list_none_path)
+
+
+
 
 
 
@@ -372,5 +413,5 @@ def time_table_transfer(update_date):
 
 
 if __name__ == "__main__":
-    time_table_transfer("20230728tra")
+    time_table_transfer("20230731")
 

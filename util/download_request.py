@@ -41,13 +41,13 @@ def download_raw(table,raw_list,attrs,path):
         # subject = get_attribute(table, i, "SubjectID")
         # wound = get_attribute(table, i, "Wound")
 
-        sub = get_attribute(table, i, "SubjectID")
-        sub_folder = os.path.join(fold,sub)
-        if os.path.isdir(sub_folder) == False:
-            os.mkdir(sub_folder)
-        guid_folder = os.path.join(sub_folder, i)
-        if os.path.isdir(guid_folder) == False:
-            os.mkdir(guid_folder)
+        # sub = get_attribute(table, i, "SubjectID")
+        # sub_folder = os.path.join(fold,subject)
+        # if os.path.isdir(sub_folder) == False:
+        #     os.mkdir(sub_folder)
+        # guid_folder = os.path.join(sub_folder, i)
+        # if os.path.isdir(guid_folder) == False:
+        #     os.mkdir(guid_folder)
 
         # wound_folder = os.path.join(sub_folder,wound)
         # if os.path.isdir(wound_folder) == False:
@@ -81,6 +81,9 @@ def download_raw(table,raw_list,attrs,path):
                 #         s3.Bucket(name).download_file(s, str(file_path))
 
                 # else:
+                    guid_folder = os.path.join(fold,j)
+                    if os.path.isdir(guid_folder) == False:
+                        os.mkdir(guid_folder)
                     attr = get_attribute(table, i, j)
                     for s in attr:
                         file_name = s.split('/')[-1]
@@ -115,24 +118,29 @@ def replace_all(text,reo):
 
 
 if __name__ == "__main__":
-    path = "/Users/ziweishi/Documents/database/DFU_Master_ImageCollections.xlsx"
-    df = pd.read_excel(path)
-    sub_name=["201-011","202-035","202-036"]
-    df = df[df["SubjectID"].isin(sub_name)]
-    raw_list = df["ImgCollGUID"].to_list()
+    # path = "/Users/ziweishi/Documents/database/DFU_Master_ImageCollections.xlsx"
+    # df = pd.read_excel(path)
+    # sub_name=["201-011","202-035","202-036"]
+    # df = df[df["SubjectID"].isin(sub_name)]
+    # raw_list = df["ImgCollGUID"].to_list()
 
+    attrs=["PseudoColor"]
 
+    cor = """4252bfba-2fda-4b7e-868c-de2cb8ed5518"""
 
+    path = "/Users/ziweishi/Documents/check/"
 
-
+    raw_list = cor.split("\n")
     table_name = 'DFU_Master_ImageCollections'
     table = dynamodb.Table(table_name)
 
-    path ="/Users/ziweishi/Documents/sample/"
-
-
-    attrs=["PseudoColor","Assessing"]
     download_raw(table,raw_list,attrs,path)
+
+
+
+
+
+
 
 
 
