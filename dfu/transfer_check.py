@@ -20,13 +20,14 @@ def refresh_sql_database(check_list):
         else:
             print("wrong site")
 
-    sql_path = sql_get.dfu_sql_find(site_list)
-    b = input("refresh database for each site?")
+    sql_info = sql_get.dfu_sql_find(site_list)
+    sql_path = sql_info[0]
+    b = sql_info[1]
+
 
     for i in check_list:
         site_list[i]["sql_path"] = sql_path[i]
         print(i+" "+sql_path[i])
-
         if b == "yes":
             connection = pymysql.connect(
                 host='127.0.0.1',
@@ -47,7 +48,6 @@ def refresh_sql_database(check_list):
             connection.commit()
             cursor.close()
             connection.close()
-
 
     a = input("is the path right? ")
     if a !="no":
@@ -87,10 +87,8 @@ def server_table_output(sql_path,site):
     cursor.execute(query1)
     collection_result = cursor.fetchall()
     df = pd.DataFrame(collection_result)
-    print(len(df))
-    df.to_excel("/Users/ziweishi/Desktop/check.xlsx")
-
     df["CaptureDate"]=df["CreateDateTime"].apply(lambda x: str(x))
+
 
     query2 = "select * from imagescollection left join images on imagescollection.IMCOLLID=images.IMCOLLID"
     cursor.execute(query2)
@@ -341,7 +339,7 @@ if __name__ =="__main__":
 
 
     # local_site = ["nynw", "ocer", "whfa", "youngst", "lvrpool", "memdfu", "hilloh", "grovoh", "mentoh", "encinogho","lahdfu","rsci"]
-    check_site = [ "hilloh"]
+    check_site = [ "nynw", "ocer", "whfa", "youngst", "lvrpool", "memdfu", "hilloh", "grovoh", "mentoh", "encinogho","lahdfu","rsci"]
     check_list = {}
 
     site_list = refresh_sql_database(check_site)

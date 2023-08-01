@@ -49,7 +49,7 @@ def subject_info():
     vd["MedicalNumber"] = vd_src["Subject ID"].to_list()
     vd["Status"] = vd_src["Completed Study (or withdrawn/LTF)"].to_list()
     vd["site"] = vd["MedicalNumber"].apply(lambda x: x[0:3])
-    vd_info = {  "206": "memdfu", "207": "hilloh", "208": "grovoh","209":"mentoh",
+    vd_info = { "206": "memdfu", "207": "hilloh", "208": "grovoh","209":"mentoh",
                "210":"encinogho","211":"lahdfu"}
     vd["site_name"] = vd["site"].apply(lambda x: vd_info[x])
     vd["type"] = "validation"
@@ -60,8 +60,6 @@ def subject_info():
 
     df.to_excel("/Users/ziweishi/Desktop/wausi_subject.xlsx")
     return df
-
-
 
 
 
@@ -193,5 +191,6 @@ def make_summary(cur_date):
 
     workbook.save(path)
 
+
 if __name__ =="__main__":
-    make_summary("072623")
+    make_summary("080123")

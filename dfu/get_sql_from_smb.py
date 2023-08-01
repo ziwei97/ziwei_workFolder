@@ -1,8 +1,7 @@
 from smb.SMBConnection import SMBConnection
 import os
-from decouple import config
 import socket
-from datetime import datetime, timedelta
+from datetime import datetime
 import boto3
 import shutil
 
@@ -72,8 +71,6 @@ def dfu_sql_find(site_list):
                             else:
                                 max_time = max_time
 
-
-
                     max_sql_fold = site_sql_fold + max_file + "/SpectralView/dvsspdata.sql"
                     local_path = "/Users/ziweishi/Documents/transfer_regular_check/0_sql_file/" + site + "_" + tag + "_dvsspdata.sql"
                     with open(local_path, 'wb') as local_file:
@@ -88,9 +85,9 @@ def dfu_sql_find(site_list):
                 s3.Bucket("spectralmd-uk").download_file(s3_path, local_path)
                 info_list[site] = local_path
         smb_connection.close()
-        return info_list
+        return info_list,a
     else:
-        return cur_info_list
+        return cur_info_list,a
 
 
 if __name__ == "__main__":
