@@ -1,18 +1,14 @@
 import boto3
 import pandas as pd
 import os
-import test_copy
 from  botocore.client import Config
 import boto3.s3.transfer as s3transfer
 
 s3 = boto3.resource('s3')
 dynamodb = boto3.resource('dynamodb')
 
-table_name = 'BURN_Master_ImageCollections'
-table = dynamodb.Table(table_name)
 
-
-def get_attribute(table,guid,attr):
+def get_attribute(table, guid, attr):
     response = table.get_item(
         Key={
             'ImgCollGUID': guid
@@ -20,80 +16,7 @@ def get_attribute(table,guid,attr):
     )
     return response["Item"][attr]
 
-def return_attribute(table,guid,attr):
-    table_set = table[table["ImgCollGUID"]==guid]
-    if attr =="Bucket":
-        value = table_set[attr].iloc[0]
-    else:
-        value = table_set[attr].iloc[0]
-        value = value[1:-1]
-        value = value.replace("'", "")
-        value = value.replace(" ", "")
-        value = value.split(",")
-    return value
-
-def wasp_data_prepare(excel_path,attrs,prefix):
-    table_name = 'DFU_Master_ImageCollections'
-    table = dynamodb.Table(table_name)
-    df = pd.read_excel(excel_path)
-    df = df[df["Sequence"]==0]
-    guid = df["ImgCollGUID"].to_list()
-    sub = df["SubjectID"].to_list()
-    visit = df["Sequence"].to_list()
-    issue = []
-    index = 0
-    for i in guid:
-        subject = sub[index]
-        visit_time = visit[index]
-        bucket = get_attribute(table, i, "Bucket")
-        for j in attrs:
-            if j=="PseudoColor":
-                try:
-                    label = get_attribute(table, i, j)
-                    for a in label:
-                        a_source = a
-                        copy_source = {
-                            'Bucket': bucket,
-                            'Key': a_source
-                        }
-                        a = a.split("/")[-1]
-                        a_source_pseduo = prefix + subject + "/" + "SV" + str(
-                            visit_time) + "/" + i + "/" + a
-                        dest_source={
-                            'Bucket': 'spectralmd-datashare',
-                            'Key': a_source_pseduo
-                        }
-                        if "PseudoColor.tif" in a:
-                            test_copy.s3_copy(copy_source, dest_source)
-                            # s3.meta.client.copy(copy_source, 'spectralmd-datashare', a_source_pseduo)
-                except:
-                    issue.append(i + " " + j + " " + "Missing")
-                    print(i + " " + j + " " + "Missing")
-            else:
-                try:
-                    label = get_attribute(table, i, j)
-                    for a in label:
-                        a_source = a
-                        copy_source = {
-                            'Bucket': bucket,
-                            'Key': a_source
-                        }
-                        a = a.split("/")[-1]
-                        a_source_pseduo = prefix + subject + "/" + "SV" + str(
-                            visit_time) + "/" + i + "/" + a
-                        dest_source = {
-                            'Bucket': 'spectralmd-datashare',
-                            'Key': a_source_pseduo
-                        }
-                        test_copy.s3_copy(copy_source, dest_source)
-                        # s3.meta.client.copy(copy_source, 'spectralmd-datashare', a_source_pseduo)
-                except:
-                    issue.append(i + " " + j + " " + "Missing")
-                    print(i + " " + j + " " + "Missing")
-        index += 1
-        print(index)
-    print(issue)
-
+# general data prepare, revise data_structure first
 def data_prepare(df,attrs,prefix):
     s3_client = boto3.client("s3", config=Config(max_pool_connections=50))
     table_name = 'BURN_Master_ImageCollections'
@@ -132,7 +55,6 @@ def data_prepare(df,attrs,prefix):
                             'Bucket': 'spectralmd-datashare',
                             'Key': a_source_pseduo
                         }
-
                         s3t.copy(copy_source=copy_source, bucket=dest_source["Bucket"], key=dest_source["Key"])
                 except:
                     print(i+" no "+j)
@@ -142,56 +64,7 @@ def data_prepare(df,attrs,prefix):
         s3t.shutdown()
 
 
-def epoc_data_prepare(df,attrs,prefix):
-    table_name = 'BURN_Master_ImageCollections'
-    table = dynamodb.Table(table_name)
-    guid = df["ImgCollGUID"].to_list()
-    sub = df["SubjectID"].to_list()
-    index = 0
-    for i in guid:
-        subject = sub[index]
-        bucket = get_attribute(table, i, "Bucket")
-        for j in attrs:
-            try:
-                label = get_attribute(table, i, j)
-                for a in label:
-                    a_source = a
-                    copy_source = {
-                        'Bucket': bucket,
-                        'Key': a_source
-                    }
-                    a = a.split("/")[-1]
-                    a_source_pseduo = prefix + i + "/" + a
-                    dest_source = {
-                        'Bucket': 'spectralmd-datashare',
-                        'Key': a_source_pseduo
-                    }
-                    test_copy.s3_copy(copy_source, dest_source)
-            except:
-                print(str(index)+" "+i+" "+j)
-        index += 1
-        print(index)
-
-
-
-
-
-# def folder_data_upload(df,guid,folder):
-#     guid = df["GUID"].to_list()
-#     index = 0
-#     for i in guid:
-#         name = "Mask_" + i + ".png"
-#         local_file = folder + name
-#         bucket = download.get_attribute(table, i, "Bucket")
-#         try:
-#             s3_file_path = "Mask/" + name
-#             s3.Bucket(bucket).upload_file(local_file, s3_file_path)
-#         except:
-#             print(i)
-#         print(bucket + " " + i)
-#         index += 1
-
-
+# specific structure for LYD company
 def mask_prepare(df,attrs,prefix):
     s3_client = boto3.client("s3", config=Config(max_pool_connections=50))
     table_name = 'BURN_Master_ImageCollections'
@@ -200,13 +73,8 @@ def mask_prepare(df,attrs,prefix):
         use_threads=True,
         max_concurrency=20,
     )
-
-    issue = []
     index = 0
-
-    # df = pd.read_excel(excel_path)
     guid = df["ImgCollGUID"].to_list()
-
     s3t = s3transfer.create_transfer_manager(s3_client, transfer_config)
 
     for i in guid:
@@ -241,9 +109,10 @@ def mask_prepare(df,attrs,prefix):
                         print("no attributes")
             except:
                 print(i + " missing " + j)
-
     s3t.shutdown()
 
+
+# download to check image quality
 def mask_download(df,folder):
     os.mkdir(folder)
     guid = df["ImgCollGUID"].to_list()
@@ -276,12 +145,12 @@ def mask_download(df,folder):
                 file_name = "fake_" + file_name
                 file_path = os.path.join(guid_path, file_name)
                 s3t.download(bucket, pseudo_key, file_path)
-
         index+=1
         print(index)
-
     s3t.shutdown()
     print("done")
+
+
 
 if __name__ == "__main__":
     attrs=["TattooMask"]

@@ -161,6 +161,7 @@ def download_image_check(bucket_name,prefix_name):
         index+=1
         print(str(index)+"/"+str(len(guid_list)))
 
+
 #Part 3: Change Wrong Final Truth color and replace them in S3 data set and S3 database.
 def replace_reupload_truth(folder_path,guid,prefix):
     table = dynamodb.Table("BURN_Master_ImageCollections")
@@ -198,6 +199,9 @@ def replace_mask(folder_path,guid,prefix):
     s3_path = prefix+subject+"/"+wound+"/"+guid+"/"+file_name
     s3.Bucket("spectralmd-datashare").upload_file(local_file_path, s3_path)
 
+
+
+# special structure for LYD check
 def mask_check(bucket_name,prefix_name):
     list = list_s3(bucket_name,prefix_name)
     #structure like imageType/filename
@@ -235,8 +239,6 @@ def mask_check(bucket_name,prefix_name):
     df.insert(0,"ImgCollGUID",guid_list)
     df.to_excel("/Users/ziweishi/Desktop/file_check.xlsx")
 
-
-
 def os_file_check(path):
     guid_list = os.listdir(path)
     guid=[]
@@ -256,7 +258,6 @@ def os_file_check(path):
             num+=1
     data = zip(guid,file)
     df = pd.DataFrame(data,columns=["ImgCollGUID","File_name"])
-
     df.to_excel("/Users/ziweishi/Desktop/os_file.xlsx")
 
 
