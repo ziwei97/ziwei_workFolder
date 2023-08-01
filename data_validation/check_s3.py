@@ -14,6 +14,7 @@ guid=list["list_id"].to_list()
 raw = []
 assess =[]
 mask = []
+tattoo = []
 p=1
 for i in guid:
     subset = df[df["guid"]==i]
@@ -28,6 +29,7 @@ for i in guid:
             raw_num+=1
         if j[0:3] =="Ass":
             ass_num+=1
+
 
     mask.append(mas_num)
     assess.append(ass_num)

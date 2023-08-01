@@ -5,6 +5,7 @@ import pandas as pd
 import random
 import pathlib
 import cv2
+import shutil
 
 s3 = boto3.resource('s3')
 dynamodb = boto3.resource('dynamodb')
@@ -31,6 +32,8 @@ def download_raw(table,raw_list,attrs,path):
     fold = path
     if os.path.isdir(fold) == False:
         os.mkdir(fold)
+    else:
+        shutil.rmtree(fold)
 
     # id_list=[]
     # size_list=[]
@@ -126,12 +129,22 @@ if __name__ == "__main__":
 
     attrs=["PseudoColor"]
 
-    cor = """4252bfba-2fda-4b7e-868c-de2cb8ed5518"""
+    cor = """9d34e35b-ed2c-400f-b18e-3612be959cf0
+24e932b6-c577-452f-aeb6-68cf6cda782e
+12dfa884-ce66-437f-b5cb-93981e180277
+6766ee4a-1ed9-4112-8698-4aef5fe73837
+781c98ec-98b5-48de-a542-68c0d73d45fa
+d8efacb9-6a23-48c6-bf65-ad47beaa3322
+8b114edc-c4a2-4ab6-9ab0-c2aa05258b92
+8abe3dfe-4d43-42f3-944b-34669667ab26
+ec55138e-2ad7-4cb6-a087-a7b577201c9b
+4d94ddea-72d4-422b-886e-fa8d922a3aa1
+88754652-8d9f-4e81-9701-9cdeb472fe2b"""
 
     path = "/Users/ziweishi/Documents/check/"
 
     raw_list = cor.split("\n")
-    table_name = 'DFU_Master_ImageCollections'
+    table_name = 'BURN_Master_ImageCollections'
     table = dynamodb.Table(table_name)
 
     download_raw(table,raw_list,attrs,path)

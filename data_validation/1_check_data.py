@@ -91,7 +91,7 @@ def num_check():
         if i not in guid:
             guid.append(i)
     type_list = {}
-    attrs = ["Assessing","Raw","PseudoColor","Mask","FinalTruth"]
+    attrs = ["Assessing","Raw","PseudoColor","Mask","FinalTruth","TattooMask"]
     final_column = column + attrs
 
     for k in final_column:
@@ -105,7 +105,7 @@ def num_check():
         num_initial = {p: 0 for p in attrs}
 
         for j in file_sub:
-            print(j)
+            # print(j)
             if j[0:4] == "Raw_" or j[0:4] == "MSI_":
                 num_initial["Raw"] += 1
             if j[0:9] == "Assessing":
@@ -118,6 +118,8 @@ def num_check():
                 num_initial["Mask"] += 1
             if "Truth_" in j and ".png" in  j:
                 num_initial["FinalTruth"] += 1
+            if j[0:6] == "Tattoo":
+                num_initial["TattooMask"] += 1
 
         for x in attrs:
             type_list[x].append(num_initial[x])
@@ -260,7 +262,7 @@ def os_file_check(path):
 
 if __name__ == "__main__":
     bucket_name = "spectralmd-datashare"
-    prefix_name = "DataScience/Burn_blister_0727/"
+    prefix_name = "DataScience/Burn_tattoo_0801/"
 
     # mask_check(bucket_name,prefix_name)
     file_num_check(bucket_name,prefix_name)
