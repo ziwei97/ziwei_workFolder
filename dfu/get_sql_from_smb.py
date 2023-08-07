@@ -79,8 +79,8 @@ def dfu_sql_find(site_list):
                 except:
                     info_list[site] = "none"
             else:
-                s3_path = "DataTransfer/WAUSI_Connolly_Hospital_Ireland/SMD2211-004/SpectralView/dvsspdata.sql"
-                tag = "temp1"
+                s3_path = "DataTransfer/WAUSI_Connolly_Hospital_Ireland/CONNOLLY_DFU_SMD2211-004_08_02_23/SpectralView/dvsspdata.sql"
+                tag = "temp2"
                 local_path = "/Users/ziweishi/Documents/transfer_regular_check/0_sql_file/" + site + "_" + tag + "_dvsspdata.sql"
                 s3.Bucket("spectralmd-uk").download_file(s3_path, local_path)
                 info_list[site] = local_path

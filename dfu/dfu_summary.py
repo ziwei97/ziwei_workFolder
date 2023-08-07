@@ -21,7 +21,6 @@ def output_total():
                 path = check_list[i]["sql_path"]
                 df_guid, df_image, site, check_path = transfer_check.server_table_output(path, i)
                 data_sites.append(df_guid)
-
             union_df = pd.concat(data_sites)
             union_df.to_excel("/Users/ziweishi/Desktop/dfu_check.xlsx")
             return union_df
@@ -193,4 +192,5 @@ def make_summary(cur_date):
 
 
 if __name__ =="__main__":
-    make_summary("080123")
+    # make_summary("080123")
+    output_total()

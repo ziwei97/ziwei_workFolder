@@ -243,7 +243,7 @@ def training_time_table_transfer(update_date):
     list_final_path = os.path.join(path, list_file_name)
     final_guid = zip(subjectid_list,visitime_list,castor_date,capture_date,guid_final_list)
 
-    check_type=["PseudoColor","Assessing","Mask","phase","Tags"]
+    check_type=["PseudoColor","Assessing","Mask","phase","Tags","Status"]
     source_info = {i: [] for i in check_type}
 
     index=0
@@ -275,7 +275,7 @@ def training_time_table_transfer(update_date):
         index+=1
 
     final_guid_df = pd.DataFrame(final_guid,columns=["SubjectID", "VisitTime","Castor_Date", "Capture_Date", "ImgCollGUID"])
-    final_guid_df["Status"] = status_final
+    final_guid_df["Complete_Status"] = status_final
     final_guid_df["12 Weeks Check"]= collection_type
 
     for y in check_type:
@@ -301,7 +301,7 @@ def training_time_table_transfer(update_date):
     match_file_name = str(update_date) + "_matched_Guid.xlsx"
     match_final_path = os.path.join(path, match_file_name)
     data_guid = zip(list_b, sub_status,time_order, visit_b, time_match, num_list,list_guid)
-    df_final = pd.DataFrame(data=data_guid,columns=["SubjectID", "Status","VisitTime", "Castor_Date", "Match_Device_Date","Num_GUID", "ImgCollGUID"])
+    df_final = pd.DataFrame(data=data_guid,columns=["SubjectID", "Complete_Status","VisitTime", "Castor_Date", "Match_Device_Date","Num_GUID", "ImgCollGUID"])
     df_final.to_excel(match_final_path)
     return df_final
 
@@ -483,7 +483,7 @@ def validation_time_table_transfer(update_date):
     list_final_path = os.path.join(path, list_file_name)
     final_guid = zip(subjectid_list,visitime_list,castor_date,capture_date,guid_final_list)
 
-    check_type=["PseudoColor","Assessing","Mask","phase","Tags"]
+    check_type=["PseudoColor","Assessing","Mask","phase","Tags","Status"]
 
     source_info = {i: [] for i in check_type}
 
@@ -517,7 +517,7 @@ def validation_time_table_transfer(update_date):
 
 
     final_guid_df = pd.DataFrame(final_guid,columns=["SubjectID", "VisitTime","Castor_Date", "Capture_Date", "ImgCollGUID"])
-    final_guid_df["Status"] = status_final
+    final_guid_df["Complete_Status"] = status_final
     final_guid_df["12 Weeks Check"]= collection_type
 
     for y in check_type:
@@ -545,10 +545,10 @@ def validation_time_table_transfer(update_date):
     match_file_name = str(update_date) + "_matched_Guid.xlsx"
     match_final_path = os.path.join(path, match_file_name)
     data_guid = zip(list_b, sub_status,time_order, visit_b, time_match, num_list,list_guid)
-    df_final = pd.DataFrame(data=data_guid,columns=["SubjectID", "Status","VisitTime", "Castor_Date", "Match_Device_Date","Num_GUID", "ImgCollGUID"])
+    df_final = pd.DataFrame(data=data_guid,columns=["SubjectID", "Complete_Status","VisitTime", "Castor_Date", "Match_Device_Date","Num_GUID", "ImgCollGUID"])
     df_final.to_excel(match_final_path)
     return df_final
 
 if __name__ == "__main__":
-    training_time_table_transfer("20230801")
+    validation_time_table_transfer("20230807val")
 

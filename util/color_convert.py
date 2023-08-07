@@ -15,7 +15,7 @@ def OverlayMask(path):
     img = Image.open(path)
     Mask = np.array(img)
 
-    OG_colorKeyGT = {'Background': [0, 0, 0],
+    OG_colorKeyGT = {'Background': [159,159,159],
                      'Viable': [153, 102, 51],
                      'First_Degree': [255, 174, 201],
                      'Shallow_Second_Degree': [183, 179, 0],
@@ -27,7 +27,7 @@ def OverlayMask(path):
                      'Unknown_Category': [19, 255, 0],
                      'other': [255, 255, 255]}
 
-    SageMaker_colorKeyGT = {'Background': [188, 189, 34],
+    SageMaker_colorKeyGT = {'Background': [254,254,254],
                             'Viable': [140, 105, 67],
                             'First_Degree': [233, 181, 199],
                             'Shallow_Second_Degree': [182, 178, 79],
@@ -94,8 +94,8 @@ def OverlayMask_dfu(path):
 
 def replace_s3(fold,guid,table):
     path = fold + guid + "/Mask_" + guid + ".png"
-    bucket = get_attribute(table, i, "Bucket")
-    s3_path = "Mask/Mask_" + i + ".png"
+    bucket = get_attribute(table, guid, "Bucket")
+    s3_path = "Mask/Mask_" + guid + ".png"
     s3.Bucket(bucket).upload_file(path, s3_path)
 
 
@@ -176,8 +176,9 @@ if __name__ == "__main__":
 
     # df = pd.DataFrame(pixel_file ,columns=["ImgCollGUID","Pixel Num"])
     # df.to_excel("/Users/ziweishi/Desktop/pixel_convert.xlsx")
-
-    path = "/Users/ziweishi/Desktop/WechatIMG8.png"
+    #
+    path = "/Users/ziweishi/Desktop/WechatIMG47.png"
+    # OverlayMask(path)
     print(return_pixel_type(path))
 
 

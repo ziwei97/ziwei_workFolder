@@ -3,6 +3,7 @@ import pandas as pd
 import os
 from  botocore.client import Config
 import boto3.s3.transfer as s3transfer
+import util.update_attr as update
 
 s3 = boto3.resource('s3')
 dynamodb = boto3.resource('dynamodb')
@@ -67,7 +68,7 @@ def data_prepare(df,attrs,prefix):
 # specific structure for LYD company
 def mask_prepare(df,attrs,prefix):
     s3_client = boto3.client("s3", config=Config(max_pool_connections=50))
-    table_name = 'BURN_Master_ImageCollections'
+    table_name = 'DFU_Master_ImageCollections'
     table = dynamodb.Table(table_name)
     transfer_config = s3transfer.TransferConfig(
         use_threads=True,
@@ -75,6 +76,7 @@ def mask_prepare(df,attrs,prefix):
     )
     index = 0
     guid = df["ImgCollGUID"].to_list()
+
     s3t = s3transfer.create_transfer_manager(s3_client, transfer_config)
 
     for i in guid:
@@ -153,15 +155,19 @@ def mask_download(df,folder):
 
 
 if __name__ == "__main__":
-    attrs=["TattooMask"]
-    prefix="DataScience/Burn_tattoo_0801/"
-    path ="/Users/ziweishi/Downloads/tattoo_dataset_download_Phase1-5.csv"
-    df = pd.read_csv(path)
-    df = df[df["Tattoed"]==1]
-    guid = df["ImgCollGUID"].to_list()
-    print(len(guid))
+    attrs=["PseudoColor","Assessing"]
+    prefix="DataScience/WAUSI_Validation_Phase1_0807/"
 
-    data_prepare(df,attrs,prefix)
+
+    path = "/Users/ziweishi/Documents/DFU_regular_update/20230807val/20230807val_Guid_list.xlsx"
+    df = pd.read_excel(path)
+    df = df[df["PseudoColor"].notna()]
+    df = df[df["Status"]=="acquired"]
+    mask_prepare(df,attrs,prefix)
+
+    # path ="/Users/ziweishi/Desktop/file_check.xlsx"
+    # df = pd.read_excel(path)
+    # mask_download(df,folder="/Users/ziweishi/Documents/validation/")
 
 
 

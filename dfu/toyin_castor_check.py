@@ -102,7 +102,7 @@ def clean_training_track(check_date):
 
 
 def clean_validation_track(check_date):
-    toyin = pd.read_excel("/Users/ziweishi/Desktop/validation.xlsx",sheet_name="Validation Dataset")
+    toyin = pd.read_excel("/Users/ziweishi/Downloads/WAUSI.xlsx",sheet_name="Validation Dataset")
     df_toyin = pd.DataFrame()
     df_toyin["SubjectID"] = toyin["Subject ID"]
     df_toyin["status"] = toyin["Completed Study (or withdrawn/LTF)"]

@@ -339,7 +339,7 @@ if __name__ =="__main__":
 
 
     # local_site = ["nynw", "ocer", "whfa", "youngst", "lvrpool", "memdfu", "hilloh", "grovoh", "mentoh", "encinogho","lahdfu","rsci"]
-    check_site = [ "nynw", "ocer", "whfa", "youngst", "lvrpool", "memdfu", "hilloh", "grovoh", "mentoh", "encinogho","lahdfu","rsci"]
+    check_site = [ "hilloh"]
     check_list = {}
 
     site_list = refresh_sql_database(check_site)
