@@ -1,0 +1,20 @@
+table {
+    border-collapse: collapse;
+    /* width: 100%; */
+    margin: 30px;
+    table-layout: fixed;
+    width: 3500px; 
+    
+  }
+  
+  table td, table th {
+    border: 1px solid #e7e7e7;
+    padding: 8px;
+  }
+  
+  table th {
+    padding: 12px;
+    text-align: left;
+    background-color: #485696;
+    color: white;
+  }

@@ -1,0 +1,16 @@
+version: '3'
+services:
+  dpw-server:
+    build: .
+    image: spectralmd/dpw
+    ports: 
+      - "5000:5000"
+    volumes:
+      - ./flask-server:/server
+    
+  mongodb:
+    image: mongo:latest
+    volumes: 
+      - ~/mongo/data:/data/db
+    ports:
+      - 27016:27017
