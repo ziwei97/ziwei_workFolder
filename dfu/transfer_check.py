@@ -110,7 +110,7 @@ def server_table_output(sql_path,site):
     if site != "memdfu":
         element_list = ["000", "99","8888"]
     else:
-        element_list = ["0000", "99"]
+        element_list = ["0000", "99","77"]
 
 
     df = df[~df["MedicalNumber"].apply(lambda x: has_element(x, element_list))]
@@ -339,7 +339,7 @@ if __name__ =="__main__":
 
 
     # local_site = ["nynw", "ocer", "whfa", "youngst", "lvrpool", "memdfu", "hilloh", "grovoh", "mentoh", "encinogho","lahdfu","rsci"]
-    check_site = [ "hilloh"]
+    check_site = [ "nynw", "ocer", "whfa", "youngst", "lvrpool", "memdfu", "hilloh", "grovoh", "mentoh", "encinogho","lahdfu","rsci"]
     check_list = {}
 
     site_list = refresh_sql_database(check_site)

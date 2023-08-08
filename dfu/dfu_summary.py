@@ -4,6 +4,9 @@ from openpyxl.styles import Alignment
 import transfer_check
 import pandas as pd
 import numpy as np
+import util.update_attr as update
+import util.download_whole_dynamodb_table as db
+import boto3
 
 
 def output_total():
@@ -33,14 +36,14 @@ def output_total():
 
 
 def subject_info():
-    tr_src =  pd.read_excel("/Users/ziweishi/Downloads/WAUSI.xlsx", sheet_name="Training Dataset")
-    vd_src = pd.read_excel("/Users/ziweishi/Downloads/WAUSI.xlsx", sheet_name="Validation Dataset")
+    tr_src =  pd.read_excel("/Users/ziweishi/Desktop/WAUSI.xlsx", sheet_name="Training Dataset")
+    vd_src = pd.read_excel("/Users/ziweishi/Desktop/WAUSI.xlsx", sheet_name="Validation Dataset")
 
     tr = pd.DataFrame()
     tr["MedicalNumber"]=tr_src["Subject ID"].to_list()
     tr["Status"]= tr_src["Completed Study (or withdrawn/LTF)"].to_list()
     tr["site"] = tr["MedicalNumber"].apply(lambda x: x[0:3])
-    tr_info={"201":"nynw","202":"ocer","203":"whfa","204":"youngst","205":"lvrpool","292":"rcsi"}
+    tr_info={"201":"nynw","202":"ocer","203":"whfa","204":"youngst","205":"lvrpool","292":"rsci"}
     tr["site_name"] = tr["site"].apply(lambda x: tr_info[x])
     tr["type"]="training"
 
@@ -48,7 +51,7 @@ def subject_info():
     vd["MedicalNumber"] = vd_src["Subject ID"].to_list()
     vd["Status"] = vd_src["Completed Study (or withdrawn/LTF)"].to_list()
     vd["site"] = vd["MedicalNumber"].apply(lambda x: x[0:3])
-    vd_info = { "206": "memdfu", "207": "hilloh", "208": "grovoh","209":"mentoh",
+    vd_info = {"206": "memdfu", "207": "hilloh", "208": "grovoh","209":"mentoh",
                "210":"encinogho","211":"lahdfu"}
     vd["site_name"] = vd["site"].apply(lambda x: vd_info[x])
     vd["type"] = "validation"
@@ -61,6 +64,33 @@ def subject_info():
     return df
 
 
+def update_subject_type():
+    dynamodb = boto3.resource('dynamodb')
+    table_name = 'DFU_Master_ImageCollections'  # 替换为你的 DynamoDB 表名
+    table = dynamodb.Table(table_name)
+
+    sub_info = pd.read_excel("/Users/ziweishi/Desktop/wausi_subject.xlsx")
+    sub_list =sub_info["MedicalNumber"].to_list()
+    dfu = db.download_table("DFU_Master_ImageCollections")
+    dfu_wausi = dfu[dfu["StudyName"]=="DFU_SSP"]
+    dfu_wausi = dfu_wausi[dfu_wausi["SubjectID"].isin(sub_list)]
+    print(len(dfu_wausi))
+    guid = dfu_wausi["ImgCollGUID"].to_list()
+    index=0
+    for i in guid:
+        print(index)
+        index+=1
+        try:
+            sub = dfu_wausi[dfu_wausi["ImgCollGUID"]==i]
+            subject = sub["SubjectID"].iloc[0]
+            type_sub = sub_info[sub_info["MedicalNumber"]==subject]
+            type = type_sub["type"].iloc[0]
+            update.update_guid(table,i,"StudyType",type)
+        except:
+            print(i+ " no subject")
+
+
+
 
 def make_summary(cur_date):
     # df_type = pd.read_excel("/Users/ziweishi/Desktop/wausi_subject.xlsx",sheet_name="total")
@@ -68,6 +98,10 @@ def make_summary(cur_date):
     df_guid = output_total()
     df = pd.merge(df_type,df_guid,on="MedicalNumber",how="left")
     df = df[df["ImgCollGUID"].notna()]
+
+
+
+
     # df.to_excel("/Users/ziweishi/Desktop/check.xlsx")
 
     df_tra = df[df["type"]=="training"]
@@ -115,6 +149,13 @@ def make_summary(cur_date):
     df_tra_total = pd.DataFrame(tra_total,index=[0])
     df_tra_list = [tra_site_sum,df_tra_total]
     df_tra_final = pd.concat(df_tra_list)
+
+    db_info = db.download_table("DFU_Master_ImageCollections")
+    db_tra = db_info[db_info["StudyType"]=="training"]
+    draw_tra =len(db_tra[db_tra["phase"].notna()])
+
+
+    print("Total Training Left img not draw is " + str(len(tra_img_total)-draw_tra)+" ratio: "+str(draw_tra) + "/" + str(len(tra_img_total)))
 
 
     df_val = df[df["type"] == "validation"]
@@ -165,6 +206,11 @@ def make_summary(cur_date):
     df_val_list = [val_site_sum, df_val_total]
     df_val_final = pd.concat(df_val_list)
 
+    db_val = db_info[db_info["StudyType"] == "validation"]
+    draw_val = len(db_val[db_val["phase"].notna()])
+
+    print("Total Validation Left img not draw is " +str(len(val_img_total)-draw_val)+" ratio: " +str(draw_val) + "/" + str(len(val_img_total)))
+
     file = "WAUSI_Summary_" + cur_date + ".xlsx"
     path = "/Users/ziweishi/Desktop/DFU_Summary/" + file
 
@@ -187,10 +233,10 @@ def make_summary(cur_date):
                 cell.alignment = Alignment(horizontal='center', vertical='center')
 
     # 保存更改后的 Excel 文件
-
     workbook.save(path)
 
 
 if __name__ =="__main__":
-    # make_summary("080123")
-    output_total()
+    make_summary("080723")
+    # output_total()
+    # update_subject_type()

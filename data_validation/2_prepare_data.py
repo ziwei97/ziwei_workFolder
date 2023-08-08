@@ -68,7 +68,7 @@ def data_prepare(df,attrs,prefix):
 # specific structure for LYD company
 def mask_prepare(df,attrs,prefix):
     s3_client = boto3.client("s3", config=Config(max_pool_connections=50))
-    table_name = 'DFU_Master_ImageCollections'
+    table_name = 'BURN_Master_ImageCollections'
     table = dynamodb.Table(table_name)
     transfer_config = s3transfer.TransferConfig(
         use_threads=True,
@@ -155,19 +155,30 @@ def mask_download(df,folder):
 
 
 if __name__ == "__main__":
-    attrs=["PseudoColor","Assessing"]
-    prefix="DataScience/WAUSI_Validation_Phase1_0807/"
+    attrs=["PseudoColor"]
+    prefix="DataScience/ePOC_tattoo_0807/"
+
+    path = "/Users/ziweishi/Downloads/epoc_844_118__1__updated.csv"
+    df = pd.read_csv(path)
+    num = [1,2]
+
+    df = df[df["Tattoo"].isin(num)]
+    df.to_excel("/Users/ziweishi/Downloads/epoc_tattoo.xlsx")
+    #
+    # print(len(df))
+    # mask_prepare(df,attrs,prefix)
 
 
-    path = "/Users/ziweishi/Documents/DFU_regular_update/20230807val/20230807val_Guid_list.xlsx"
-    df = pd.read_excel(path)
-    df = df[df["PseudoColor"].notna()]
-    df = df[df["Status"]=="acquired"]
-    mask_prepare(df,attrs,prefix)
+
+    # path = "/Users/ziweishi/Documents/DFU_regular_update/20230807val/20230807val_Guid_list.xlsx"
+    # df = pd.read_excel(path)
+    # df = df[df["PseudoColor"].notna()]
+    # df = df[df["Status"]=="acquired"]
+    # mask_prepare(df,attrs,prefix)
 
     # path ="/Users/ziweishi/Desktop/file_check.xlsx"
     # df = pd.read_excel(path)
-    # mask_download(df,folder="/Users/ziweishi/Documents/validation/")
+    # mask_download(df,folder="/Users/ziweishi/Documents/epoc_tattoo/")
 
 
 

@@ -18,18 +18,7 @@ s3 = boto3.resource('s3')
 
 
 
-# bucket = s3.Bucket(bucket_name)
-#
-# list = []
-# for obj in bucket.objects.filter(Prefix=folder_prefix):
-#     path = obj.key
-#     guid = path.split("/")
-#     guid = guid[-1]
-#     guid = guid.replace("PseudoColor_","")
-#     guid = guid.replace(".tif","")
-#     update.update_guid(guid, "phase", 4)
-#
-#     print(guid)
+
 
 
 

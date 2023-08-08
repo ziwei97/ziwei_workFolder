@@ -89,11 +89,10 @@ def download_table(table_name):
         df = pd.read_excel(excel_path)
     else:
         df = pd.read_excel(excel_path)
-
     return df
 
 if __name__ == "__main__":
     dfu = download_table("DFU_Master_ImageCollections")
-    final = dfu[dfu["StudyName"]=="DFU_SSP"]
-    final = final[["ImgCollGUID","Bucket","Status","SubjectID","PseudoColor","Assessing","Raw","Mask","Tags"]]
+    # final = dfu[dfu["StudyName"]=="DFU_SSP"]
+    final = dfu[["ImgCollGUID","Bucket","Status","SubjectID","StudyType","phase","PseudoColor","Assessing","Raw","Mask","Tags"]]
     final.to_excel("/Users/ziweishi/Desktop/dfu.xlsx")

@@ -4,6 +4,7 @@ import pandas as pd
 import os
 from util import color_drawing, download_request as download
 
+
 s3 = boto3.resource('s3')
 dynamodb = boto3.resource('dynamodb')
 
@@ -263,7 +264,7 @@ def os_file_check(path):
 
 if __name__ == "__main__":
     bucket_name = "spectralmd-datashare"
-    prefix_name = "DataScience/WAUSI_Validation_Phase1_0807/"
+    prefix_name = "DataScience/ePOC_tattoo_0807/"
 
     mask_check(bucket_name,prefix_name)
     # file_num_check(bucket_name,prefix_name)
