@@ -2,7 +2,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 import calendar
 
-   
+
 def last_day_of_month(year_month):
     year = year_month[0]
     month = year_month[1]

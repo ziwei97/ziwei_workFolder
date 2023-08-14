@@ -5,6 +5,7 @@ import numpy as np
 import get_sql_from_smb as sql_get
 from util import download_whole_dynamodb_table
 
+
 #refresh device database with the latest database sql file
 def refresh_sql_database(check_list):
     local_site = ["nynw", "ocer", "whfa", "youngst", "lvrpool", "memdfu", "hilloh", "grovoh", "mentoh", "encinogho",
@@ -23,11 +24,9 @@ def refresh_sql_database(check_list):
     sql_info = sql_get.dfu_sql_find(site_list)
     sql_path = sql_info[0]
     b = sql_info[1]
-
-
     for i in check_list:
         site_list[i]["sql_path"] = sql_path[i]
-        print(i+" "+sql_path[i])
+        print(i + " " + sql_path[i])
         if b == "yes":
             connection = pymysql.connect(
                 host='127.0.0.1',
@@ -50,11 +49,10 @@ def refresh_sql_database(check_list):
             connection.close()
 
     a = input("is the path right? ")
-    if a !="no":
+    if a != "no":
         return site_list
     else:
         return False
-
 
 
 def has_element(value,element_list):
@@ -339,7 +337,7 @@ if __name__ =="__main__":
 
 
     # local_site = ["nynw", "ocer", "whfa", "youngst", "lvrpool", "memdfu", "hilloh", "grovoh", "mentoh", "encinogho","lahdfu","rsci"]
-    check_site = [ "nynw", "ocer", "whfa", "youngst", "lvrpool", "memdfu", "hilloh", "grovoh", "mentoh", "encinogho","lahdfu","rsci"]
+    check_site = [ "nynw"]
     check_list = {}
 
     site_list = refresh_sql_database(check_site)

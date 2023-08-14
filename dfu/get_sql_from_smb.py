@@ -92,4 +92,3 @@ def dfu_sql_find(site_list):
 
 if __name__ == "__main__":
     print(dfu_sql_find({'mentoh': {'type': 'local'}}))
-

@@ -16,22 +16,13 @@ s3 = boto3.resource('s3')
 # bucket_name = 'spectralmd-datashare'
 # folder_prefix = 'DataScience/rcsi_fix_0802/PseudoColor/'
 
+patient_list = ["207-009","208-099","208-000","208-077"]
 
+test = ["000","99","77","88","."]
 
+p_list = [i for i in patient_list if all(text not in i for text in test)]
 
-
-
-
-
-path = "/Users/ziweishi/Documents/DFU_regular_update/20230807/20230807_Guid_list.xlsx"
-
-df = pd.read_excel(path)
-
-df = df[df["phase"]=="4"]
-
-print(len(df))
-
-df.to_csv("/Users/ziweishi/Desktop/Phase4_All_GUID_Info.csv")
+print(p_list)
 
 
 

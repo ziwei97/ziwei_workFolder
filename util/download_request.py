@@ -144,7 +144,7 @@ ec55138e-2ad7-4cb6-a087-a7b577201c9b
     path = "/Users/ziweishi/Documents/check/"
 
     raw_list = cor.split("\n")
-    table_name = 'BURN_Master_ImageCollections'
+    table_name = 'DFU_Master_ImageCollections'
     table = dynamodb.Table(table_name)
 
     download_raw(table,raw_list,attrs,path)
