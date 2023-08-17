@@ -264,9 +264,9 @@ def os_file_check(path):
 
 if __name__ == "__main__":
     bucket_name = "spectralmd-datashare"
-    prefix_name = "DataScience/ePOC_tattoo_0807/"
+    prefix_name = "DataScience/ePOC_raw_tattoo_0817/"
 
-    mask_check(bucket_name,prefix_name)
-    # file_num_check(bucket_name,prefix_name)
+    # mask_check(bucket_name,prefix_name)
+    file_num_check(bucket_name,prefix_name)
 
 

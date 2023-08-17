@@ -145,6 +145,7 @@ def make_summary(cur_date):
     tra_total["Site"] = "total"
     tra_total["Sub_Num"] = len(tra_sub)
     tra_total["Img_Sum"] = len(tra_img_total)
+
     tra_total["Site_Name"]=np.nan
     df_tra_total = pd.DataFrame(tra_total,index=[0])
     df_tra_list = [tra_site_sum,df_tra_total]
@@ -152,10 +153,8 @@ def make_summary(cur_date):
 
     db_info = db.download_table("DFU_Master_ImageCollections")
     db_tra = db_info[db_info["StudyType"]=="training"]
-    draw_tra =len(db_tra[db_tra["phase"].notna()])
 
 
-    print("Total Training Left img not draw is " + str(len(tra_img_total)-draw_tra)+" ratio: "+str(draw_tra) + "/" + str(len(tra_img_total)))
 
 
     df_val = df[df["type"] == "validation"]
@@ -237,6 +236,6 @@ def make_summary(cur_date):
 
 
 if __name__ =="__main__":
-    make_summary("081123")
+    make_summary("081623")
     # output_total()
     # update_subject_type()

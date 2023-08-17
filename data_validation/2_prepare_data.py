@@ -33,6 +33,7 @@ def data_prepare(df,attrs,prefix):
     sub = df["SubjectID"].to_list()
     # wound = df["Wound"].to_list()
     # sv = df["VisitTime"].to_list()
+    mask_index = 0
     try:
         for i in guid:
             print(index)
@@ -41,28 +42,68 @@ def data_prepare(df,attrs,prefix):
             # sv_n = sv[index]
             bucket = get_attribute(table, i, "Bucket")
             index += 1
+
             for j in attrs:
                 try:
-                    label = get_attribute(table, i, j)
-                    for a in label:
-                        a_source = a
-                        copy_source = {
-                            'Bucket': bucket,
-                            'Key': a_source
-                        }
-                        a = a.split("/")[-1]
-                        a_source_pseduo = prefix + subject + "/"+ i + "/" + a
-                        dest_source = {
-                            'Bucket': 'spectralmd-datashare',
-                            'Key': a_source_pseduo
-                        }
-                        s3t.copy(copy_source=copy_source, bucket=dest_source["Bucket"], key=dest_source["Key"])
+                    if j =="Mask":
+                        label = get_attribute(table, i, j)
+                        for a in label:
+                            a_source = a
+                            copy_source = {
+                                'Bucket': bucket,
+                                'Key': a_source
+                            }
+                            a = a.split("/")[-1]
+                            a_source_pseduo = prefix + subject + "/" + i + "/" + a
+                            dest_source = {
+                                'Bucket': 'spectralmd-datashare',
+                                'Key': a_source_pseduo
+                            }
+                            if a == "Mask_"+i+".png":
+                                s3t.copy(copy_source=copy_source, bucket=dest_source["Bucket"], key=dest_source["Key"])
+                                print("mask index "+str(mask_index))
+                                mask_index+=1
+                    elif j == "Raw":
+                        label = get_attribute(table, i, j)
+                        for a in label:
+                            a_source = a
+                            copy_source = {
+                                'Bucket': bucket,
+                                'Key': a_source
+                            }
+                            a = a.split("/")[-1]
+                            a_source_pseduo = prefix + subject + "/" + i + "/" + a
+                            dest_source = {
+                                'Bucket': 'spectralmd-datashare',
+                                'Key': a_source_pseduo
+                            }
+                            if a[-5:] == ".tiff":
+                                s3t.copy(copy_source=copy_source, bucket=dest_source["Bucket"],
+                                         key=dest_source["Key"])
+
+                    else:
+                        label = get_attribute(table, i, j)
+                        for a in label:
+                            a_source = a
+                            copy_source = {
+                                'Bucket': bucket,
+                                'Key': a_source
+                            }
+                            a = a.split("/")[-1]
+                            a_source_pseduo = prefix + subject + "/" + i + "/" + a
+                            dest_source = {
+                                'Bucket': 'spectralmd-datashare',
+                                'Key': a_source_pseduo
+                            }
+                            s3t.copy(copy_source=copy_source, bucket=dest_source["Bucket"], key=dest_source["Key"])
                 except:
                     print(i+" no "+j)
     except Exception as err:
         issue.append(err)
     finally:
         s3t.shutdown()
+
+
 
 
 # specific structure for LYD company
@@ -155,16 +196,46 @@ def mask_download(df,folder):
 
 
 if __name__ == "__main__":
-    attrs=["PseudoColor"]
-    prefix="DataScience/ePOC_tattoo_0807/"
+    attrs=["Raw","Mask"]
+    prefix="DataScience/ePOC_raw_tattoo_0817/"
+    path = "/Users/ziweishi/Desktop/epoc_tattoo.xlsx"
+    df = pd.read_excel(path)
 
-    path = "/Users/ziweishi/Downloads/epoc_844_118__1__updated.csv"
-    df = pd.read_csv(path)
-    num = [1,2]
+    data_prepare(df,attrs,prefix)
 
-    df = df[df["Tattoo"].isin(num)]
-    df.to_excel("/Users/ziweishi/Downloads/epoc_tattoo.xlsx")
+
+    guid = df["ImgCollGUID"].to_list()
+    index=0
+
+    bucket_name = "spectralmd-datashare"
+    bucket = s3.Bucket(bucket_name)
     #
+    #
+    # pseudo_path = "/Users/ziweishi/Downloads/ePOC_tattoo_0807/original_images/"
+    # for i in guid:
+    #     sub = df[df["ImgCollGUID"]==i]
+    #     subject = sub["SubjectID"].iloc[0]
+    #     file_name=pseudo_path+"PseudoColor_"+i+".tif"
+    #     key_name = prefix+subject+"/"+i+"/"+"PseudoColor_"+i+".tif"
+    #     bucket.upload_file(file_name, key_name)
+    #     index+=1
+    #     print(index)
+    #
+    index=0
+    tattoo_path = "/Users/ziweishi/Downloads/ePOC_tattoo_0807/SegmentationClass/"
+    for i in guid:
+        sub = df[df["ImgCollGUID"]==i]
+        subject = sub["SubjectID"].iloc[0]
+        file_name=tattoo_path+"PseudoColor_"+i+".png"
+        key_name = prefix+subject+"/"+i+"/"+"TattooMask_"+i+".png"
+        bucket.upload_file(file_name, key_name)
+        index+=1
+        print(index)
+
+
+
+
+
     # print(len(df))
     # mask_prepare(df,attrs,prefix)
 

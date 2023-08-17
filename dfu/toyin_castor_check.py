@@ -4,7 +4,7 @@ from datetime import datetime
 
 
 def clean_training_track(check_date):
-    toyin = pd.read_excel("/Users/ziweishi/Downloads/WAUSI.xlsx",sheet_name="Training Dataset")
+    toyin = pd.read_excel("/Users/ziweishi/Desktop/WAUSI.xlsx",sheet_name="Training Dataset")
     df_toyin = pd.DataFrame()
     df_toyin["SubjectID"] = toyin["Subject ID"]
     df_toyin["status"] = toyin["Completed Study (or withdrawn/LTF)"]

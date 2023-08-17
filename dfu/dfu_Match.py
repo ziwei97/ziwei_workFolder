@@ -554,5 +554,5 @@ def validation_time_table_transfer(update_date):
 
 
 if __name__ == "__main__":
-    training_time_table_transfer("20230811tra")
+    training_time_table_transfer("20230815tra")
 
