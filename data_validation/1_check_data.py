@@ -201,7 +201,7 @@ def replace_mask(folder_path,guid,prefix):
     s3.Bucket("spectralmd-datashare").upload_file(local_file_path, s3_path)
 
 
-
+#refresh data workspace
 # special structure for LYD check
 def mask_check(bucket_name,prefix_name):
     list = list_s3(bucket_name,prefix_name)
