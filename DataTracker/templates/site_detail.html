@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Site Detail</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>DHA Project Summary</h1>
+
+    <h2>Patient Info Details</h2>
+    <h1>{{results[0] | safe}}</h1>
+    <h2>Collection Info Details</h2>
+    <h1>{{results[1] | safe}}</h1>
+    <p></p>
+
+</body>
+</html>

@@ -1,0 +1,24 @@
+
+.custom-style {
+  border-collapse: collapse;
+  width: 80%;
+  font-family: Arial, sans-serif;
+}
+
+.custom-style th {
+  border: 2px solid #000000;
+  font-size: 20px;
+  font-weight: bold;
+  padding: 8px;
+  text-align: center;
+  background-color: rgba(139, 216, 233, 0.513);
+}
+
+.custom-style td {
+  border: 1px solid #8f8f8f;
+  font-size: 15px;
+  font-weight: 100;
+  padding: 8px;
+  text-align: center;
+  background-color: rgba(210, 229, 234, 0.513);
+}
