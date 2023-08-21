@@ -22,6 +22,11 @@ def hello_world():
     return render_template("index.html")
 
 
+@app.route("/dashboard/<study_name>")
+def study_detail(study_name):
+    return "%s Data Dashboard" %study_name
+
+
 @app.route("/study/<study_name>")
 def study_detail(study_name):
     return "%s Data Dashboard" %study_name
