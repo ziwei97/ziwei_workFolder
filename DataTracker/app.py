@@ -23,7 +23,7 @@ def hello_world():
 
 
 @app.route("/dashboard/<study_name>")
-def study_detail(study_name):
+def dashboard_detail(study_name):
     return "%s Data Dashboard" %study_name
 
 
@@ -48,7 +48,6 @@ def site_detail():
     collection_result2 = cursor.fetchall()
     df2 = pd.DataFrame(collection_result2)
     data2 = df2.reset_index(drop=True)
-
     tables = [data1,data2]
     table_forms = [table.to_html(
         classes='table custom-style', index=False, border=2) for table in tables]

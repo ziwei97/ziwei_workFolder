@@ -236,6 +236,6 @@ def make_summary(cur_date):
 
 
 if __name__ =="__main__":
-    make_summary("081623")
+    make_summary("082223")
     # output_total()
     # update_subject_type()

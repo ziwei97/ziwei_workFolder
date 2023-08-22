@@ -19,9 +19,9 @@ def dfu_sql_find(site_list):
         info = sql.split("_")
         site = info[0]
         cur_info_list[site] = path+sql
-    a = input("get latest sql file for each site?")
+    z = input("get latest sql file for each site?")
 
-    if a =="yes":
+    if z =="yes":
         if os.path.isdir(path) == True:
             shutil.rmtree(path)
         os.mkdir(path)
@@ -63,14 +63,14 @@ def dfu_sql_find(site_list):
                             date = time[-2]
                             month = time[-3]
                             date_time = month + "-" + date + "-" + year
-                            tag = date_time
                             real_time = datetime.strptime(date_time, '%m-%d-%Y')
                             if real_time > max_time:
                                 max_time = real_time
                                 max_file = i
+                                tag = date_time
                             else:
                                 max_time = max_time
-
+                    print(tag)
                     max_sql_fold = site_sql_fold + max_file + "/SpectralView/dvsspdata.sql"
                     local_path = "/Users/ziweishi/Documents/transfer_regular_check/0_sql_file/" + site + "_" + tag + "_dvsspdata.sql"
                     with open(local_path, 'wb') as local_file:
@@ -85,10 +85,10 @@ def dfu_sql_find(site_list):
                 s3.Bucket("spectralmd-uk").download_file(s3_path, local_path)
                 info_list[site] = local_path
         smb_connection.close()
-        return info_list,a
+        return info_list,z
     else:
-        return cur_info_list,a
+        return cur_info_list,z
 
 
 if __name__ == "__main__":
-    print(dfu_sql_find({'mentoh': {'type': 'local'}}))
+    print(dfu_sql_find({'nynw': {'type': 'local'}}))
