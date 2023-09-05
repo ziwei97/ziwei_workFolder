@@ -34,7 +34,7 @@ def dfu_sql_find(site_list):
         smb_connection.connect("192.168.110.252", 445)
         info_list = {}
         for site in site_list.keys():
-            path = sql_path + site
+            path = sql_path
             if os.path.isdir(path) == False:
                 # shutil.rmtree(path)
                 os.mkdir(path)
@@ -70,8 +70,8 @@ def dfu_sql_find(site_list):
                             else:
                                 max_time = max_time
                     max_sql_fold = site_sql_fold + max_file + "/SpectralView/dvsspdata.sql"
-                    print(max_sql_fold)
-                    local_path = path+"/" + site + "_" + tag + "_dvsspdata.sql"
+
+                    local_path = path+ site + "_" + tag + "_dvsspdata.sql"
                     with open(local_path, 'wb') as local_file:
                         smb_connection.retrieveFile(shared_folder_name, max_sql_fold, local_file)
                     info_list[site] = local_path
@@ -80,7 +80,7 @@ def dfu_sql_find(site_list):
             else:
                 s3_path = "DataTransfer/WAUSI_Connolly_Hospital_Ireland/CONNOLLY_DFU_SMD2211-004_08_02_23/SpectralView/dvsspdata.sql"
                 tag = "temp2"
-                local_path = path+"/"+ site + "_" + tag + "_dvsspdata.sql"
+                local_path = path+ site + "_" + tag + "_dvsspdata.sql"
                 s3.Bucket("spectralmd-uk").download_file(s3_path, local_path)
                 info_list[site] = local_path
         smb_connection.close()
@@ -90,4 +90,4 @@ def dfu_sql_find(site_list):
 
 
 if __name__ == "__main__":
-    print(dfu_sql_find({'nynw': {'type': 'local'}}))
+    print(dfu_sql_find({'rsci': {'type': 's3'}}))

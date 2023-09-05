@@ -85,6 +85,7 @@ def server_table_output(sql_path,site):
     cursor.execute(query2)
     image_result = cursor.fetchall()
     df2 = pd.DataFrame(image_result)
+    print(sql_path)
     info = sql_path.split("/")[-1]
     date = info.split("_")[-2]
     site = info.split("_")[-3]
@@ -335,13 +336,9 @@ def image_check(db,df,df2,site,check_path):
     return df_guid
 
 
-
-
 if __name__ =="__main__":
-
-
     # local_site = ["nynw", "ocer", "whfa", "youngst", "lvrpool", "memdfu", "hilloh", "grovoh", "mentoh", "encinogho","lahdfu","rsci"]
-    check_site = ["nynw", "ocer", "whfa", "youngst", "lvrpool", "memdfu", "hilloh", "grovoh", "mentoh", "encinogho","lahdfu","rsci"]
+    check_site = [ "mentoh"]
     check_list = {}
 
     site_list = refresh_sql_database(check_site)

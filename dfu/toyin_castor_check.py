@@ -35,10 +35,8 @@ def clean_training_track(check_date):
         return i
 
     for i in range(1, 13):
-
         if i ==1:
             visit = "SV_" + str(i) + "_Date"
-
             to_vis = "BSV/SV1"
             column.append(visit)
             date_time_list = []
@@ -96,6 +94,7 @@ def clean_training_track(check_date):
 
     path = "/Users/ziweishi/Documents/DFU_regular_update/"+check_date+"/toyin_tra_filtered.xlsx"
     df_toyin.to_excel(path)
+    df_toyin.to_excel("../Documents/Castor_training.xlsx")
 
     return df_toyin,issue,sub_sta
 
@@ -180,6 +179,7 @@ def clean_validation_track(check_date):
 
     path = "/Users/ziweishi/Documents/DFU_regular_update/"+check_date+"/toyin_val_filtered.xlsx"
     df_toyin.to_excel(path)
+    df_toyin.to_excel("../Documents/Castor_validation.xlsx")
 
     return df_toyin,issue,sub_sta
 

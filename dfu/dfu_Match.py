@@ -76,6 +76,7 @@ def training_time_table_transfer(update_date):
     #training toyin
     vt1 = toyin_castor_check.clean_training_track(update_date)
 
+
     vt = vt1[0]
     issue = vt1[1]
     status = vt1[2]
@@ -283,6 +284,7 @@ def training_time_table_transfer(update_date):
     for y in check_type:
         final_guid_df[y] = source_info[y]
     final_guid_df.to_excel(list_final_path)
+    final_guid_df.to_excel("../Documents/dfu_latest_match_training.xlsx")
     print("total matched guid num: " +str(len(guid_final_list)))
     print("total non-matched guid num: " + str(total_none_match))
     print("total out off 12 weeks guid num: " + str(out_num))
@@ -521,6 +523,7 @@ def validation_time_table_transfer(update_date):
     for y in check_type:
         final_guid_df[y] = source_info[y]
     final_guid_df.to_excel(list_final_path)
+    final_guid_df.to_excel("../Documents/dfu_latest_match_validation.xlsx")
     print("total matched guid num: " + str(len(guid_final_list)))
     print("total non-matched guid num: " + str(total_none_match))
     print("total out off 12 weeks guid num: " + str(out_num))
@@ -550,6 +553,6 @@ def validation_time_table_transfer(update_date):
 
 if __name__ == "__main__":
     # a = input("Do you use the latest WAUSI Enrollment tracker file?")
-    # training_time_table_transfer("20230830training")
-    validation_time_table_transfer("20230830validation")
+    training_time_table_transfer("20230905tra")
+    validation_time_table_transfer("20230905val")
 

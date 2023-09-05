@@ -93,11 +93,9 @@ def update_subject_type():
 def make_summary(cur_date):
     df_type = subject_info()
     df_guid = output_total()
-    df = pd.merge(df_type,df_guid,on="MedicalNumber",how="outer")
-    df.to_excel("/Users/ziweishi/Desktop/dfu_all_check.xlsx")
+    df = pd.merge(df_type,df_guid,on="MedicalNumber",how="right")
+    # df.to_excel("/Users/ziweishi/Desktop/dfu_all_check.xlsx")
     # df = df[df["ImgCollGUID"].notna()]
-
-
     df_tra = df[df["type"]=="training"]
     df_tra = df_tra.copy()
     df_tra["site"] = df_tra["site"].apply(lambda x: str(x))
@@ -145,7 +143,7 @@ def make_summary(cur_date):
     df_tra_list = [tra_site_sum,df_tra_total]
     df_tra_final = pd.concat(df_tra_list)
 
-    db_info = db.download_table("DFU_Master_ImageCollections")
+    # db_info = db.download_table("DFU_Master_ImageCollections")
 
     df_val = df[df["type"] == "validation"]
     df_val = df_val.copy()
@@ -195,18 +193,20 @@ def make_summary(cur_date):
     df_val_list = [val_site_sum, df_val_total]
     df_val_final = pd.concat(df_val_list)
 
-    file = "WAUSI_Summary_" + cur_date + ".xlsx"
-    path = "/Users/ziweishi/Desktop/DFU_Summary/" + file
+    file = "WAUSI_Summary_latest.xlsx"
+    path = "../Documents/DFU_Summary/" + file
+
+    local_name = "WAUSI_Summary_"+cur_date+".xlsx"
+    local_path = "/Users/ziweishi/Desktop/DFU_Summary/"+local_name
+
+
 
     writer = pd.ExcelWriter(path, engine='xlsxwriter')
     df_tra_final.to_excel(writer, sheet_name='training_site_summary', index=False)
     tra_img_sum.to_excel(writer, sheet_name='training_subject_summary', index=False)
     df_val_final.to_excel(writer, sheet_name='validation_site_summary', index=False)
     val_img_sum.to_excel(writer, sheet_name='validation_subject_summary', index=False)
-
     writer.close()
-
-
     workbook =load_workbook(path)
 
     # 对每个 sheet 设置单元格居中
@@ -215,16 +215,14 @@ def make_summary(cur_date):
         for row in ws.iter_rows():
             for cell in row:
                 cell.alignment = Alignment(horizontal='center', vertical='center')
-
     # 保存更改后的 Excel 文件
     workbook.save(path)
+    workbook.save(local_path)
 
-def output_summary(date):
-    a = input("Do you use the latest WAUSI Enrollment tracker file?")
-    if a != "no":
-        make_summary(date)
-    else:
-        print("go to download!")
+
+    return path
+
+
 
 
 def get_new_transfer():
@@ -257,8 +255,167 @@ def get_new_transfer():
 
 
 
-if __name__ =="__main__":
-    # output_summary("083023tra")
+def match_cal(match_path):
+    df = pd.read_excel(match_path)
+    sub_list = df["SubjectID"].to_list()
+    vis_list = df["VisitTime"].to_list()
+    time_list = df["Castor_Date"].to_list()
+    draw_df = df[df["phase"].notna()]
+    draw_df = draw_df[draw_df["phase"] != "archived"]
+    draw_sub = draw_df["SubjectID"].to_list()
+    draw = {}
+    for i in draw_sub:
+        if i not in draw:
+            draw[i] = 1
+        else:
+            draw[i] += 1
+    archive_df = df[df["phase"] == "archived"]
+    archive_sub = archive_df["SubjectID"].to_list()
+    archive = {}
+    for i in archive_sub:
+        if i not in archive:
+            archive[i] = 1
+        else:
+            archive[i] += 1
+    info = {}
+    num = {}
+    index = 0
+    for i in sub_list:
+        if i not in num:
+            num[i] = 1
+        else:
+            num[i] += 1
+        vis = vis_list[index]
+        time = time_list[index]
+        if i not in info:
+            info[i] = {}
+            if vis not in info[i]:
+                info[i][vis] = time
+            else:
+                info[i][vis] = info[i][vis]
+        else:
+            if vis not in info[i]:
+                info[i][vis] = time
+            else:
+                info[i][vis] = info[i][vis]
+        index += 1
+    subject = info.keys()
+    column_name = ["Match", "Drawn","Archive","not_Drawn"]
+    sv = []
+    for l in range(1, 13):
+        p = "SV_" + str(l) + "_Date"
+        column_name.append(p)
+        sv.append(p)
+    column_name.append("Visit_Total")
+    df_info = pd.DataFrame(columns=column_name)
+    # df_info["SubjectID"] = subject
+    for i in subject:
+        vis_info = info[i]
+        vis_total = len(vis_info)
+        for j in vis_info.keys():
+            time = vis_info[j]
+            df_info.loc[i, j] = time
+        df_info.loc[i, "Visit_Total"] = vis_total
+        try:
+            df_info.loc[i, "Match"] = num[i]
+        except:
+            df_info.loc[i, "Match"] = np.NAN
+        try:
+            df_info.loc[i, "Drawn"] = draw[i]
+        except:
+            df_info.loc[i, "Drawn"] = 0
+        try:
+            df_info.loc[i, "Archive"] = archive[i]
+        except:
+            df_info.loc[i, "Archive"] = 0
+    df_info["not_Drawn"] = df_info["Match"]-df_info["Drawn"]-df_info["Archive"]
+    return df_info,info,sv
 
-    output_total()
-    # update_subject_type()
+
+def num_check(cur_date):
+    df_tra = match_cal("../Documents/dfu_latest_match_training.xlsx")
+    df_val= match_cal("../Documents/dfu_latest_match_validation.xlsx")
+    sv = df_tra[2]
+
+    df_tra_cal = df_tra[0]
+    tra_info = df_tra[1]
+    df_val_cal = df_val[0]
+    val_info = df_val[1]
+
+    column = df_tra_cal.columns.tolist()
+
+    df_tra_cas = pd.read_excel("../Documents/Castor_training.xlsx")
+    df_val_cas = pd.read_excel("../Documents/Castor_validation.xlsx")
+
+    tra_sub = df_tra_cas["SubjectID"].to_list()
+    for i in tra_sub:
+        tra_cas_sub = df_tra_cas[df_tra_cas["SubjectID"]==i]
+        for p in sv:
+            cas = tra_cas_sub[p].iloc[0]
+            if type(cas) != float:
+                try:
+                    match = tra_info[i][p]
+                    df_tra_cal.loc[i,p] = match
+                except:
+                    df_tra_cal.loc[i,p] = "not_match"
+            else:
+                df_tra_cal.loc[i, p] = np.nan
+
+    df_tra_cal.reset_index(level=0, inplace=True)
+    sub = ["SubjectID"]
+    columns = sub + column
+    df_tra_cal.columns = columns
+
+    val_sub = df_val_cas["SubjectID"].to_list()
+    for i in val_sub:
+        val_cas_sub = df_val_cas[df_val_cas["SubjectID"] == i]
+        for p in sv:
+            cas = val_cas_sub[p].iloc[0]
+            if type(cas) != float:
+                try:
+                    match = val_info[i][p]
+                    df_val_cal.loc[i, p] = match
+                except:
+                    df_val_cal.loc[i, p] = "not_match"
+            else:
+                df_val_cal.loc[i, p] = np.nan
+
+    df_val_cal.reset_index(level=0, inplace=True)
+    sub = ["SubjectID"]
+    columns = sub + column
+    df_val_cal.columns = columns
+
+    path = make_summary(cur_date)
+
+    df_tra_site = pd.read_excel(path, sheet_name="training_site_summary")
+    df_tra_sum = pd.read_excel(path,sheet_name="training_subject_summary")
+    df_val_site = pd.read_excel(path,sheet_name="validation_site_summary")
+    df_val_sum = pd.read_excel(path,sheet_name="validation_subject_summary")
+
+    df_final_sum_tra = pd.merge(df_tra_sum,df_tra_cal,on="SubjectID",how="left")
+    df_final_sum_val = pd.merge(df_val_sum,df_val_cal,on="SubjectID",how="left")
+
+    new_path = "../Documents/DFU_Summary/WAUSI_Summary_Calculation.xlsx"
+    writer = pd.ExcelWriter(new_path, engine='xlsxwriter')
+    df_tra_site.to_excel(writer, sheet_name='training_site_summary', index=False)
+    df_final_sum_tra.to_excel(writer, sheet_name='training_subject_summary', index=False)
+    df_val_site.to_excel(writer, sheet_name='validation_site_summary', index=False)
+    df_final_sum_val.to_excel(writer, sheet_name='validation_subject_summary', index=False)
+    writer.close()
+    workbook = load_workbook(new_path)
+
+    # 对每个 sheet 设置单元格居中
+    for sheet in workbook.sheetnames:
+        ws = workbook[sheet]
+        for row in ws.iter_rows():
+            for cell in row:
+                cell.alignment = Alignment(horizontal='center', vertical='center')
+    # 保存更改后的 Excel 文件
+    workbook.save(new_path)
+
+
+
+
+if __name__ =="__main__":
+    num_check("090523")
+
