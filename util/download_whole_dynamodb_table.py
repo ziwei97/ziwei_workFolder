@@ -92,7 +92,34 @@ def download_table(table_name):
     return df
 
 if __name__ == "__main__":
-    dfu = download_table("DFU_Master_ImageCollections")
-    # final = dfu[dfu["StudyName"]=="DFU_SSP"]
-    final = dfu[["ImgCollGUID","Bucket","Status","SubjectID","StudyType","phase","PseudoColor","Assessing","Raw","Mask","Tags"]]
-    final.to_excel("/Users/ziweishi/Desktop/dfu.xlsx")
+    # burn= download_table("DFU_Master_ImageCollections")
+    # final1 = burn[burn["StudyName"]=="BURN_BTS"]
+    # final = final1[["ImgCollGUID","Bucket","Status","SubjectID","PseudoColor","Assessing","Raw","Mask","Tags"]]
+    # final.to_excel("/Users/ziweishi/Desktop/BURN.xlsx")
+
+    a = download_table("DFU_Master_ImageCollections")
+
+    a = a[["ImgCollGUID","phase","StudyType","Bucket","Status","SubjectID","PseudoColor","Assessing","Raw","Mask","Tags"]]
+
+    a.to_excel("/Users/ziweishi/Desktop/dfuu.xlsx")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -34,7 +34,6 @@ def add_phase(df):
 
     for i in guid:
         sta =status[index]
-
         if sta =="acquired":
             update_guid(table, i, "phase", 1)
         if sta =="archived":
@@ -53,21 +52,23 @@ def add_phase(df):
 if __name__ == "__main__":
     # update_guid(table,"cc6b7a51-e271-4725-a920-e925bb0aa347","StudyType","validation")
 
-    path = "/Users/ziweishi/Documents/DFU_regular_update/20230807val/20230807val_Guid_list.xlsx"
-    df = pd.read_excel(path)
-    add_phase(df)
+    # path = "/Users/ziweishi/Documents/DFU_regular_update/20230807val/20230807val_Guid_list.xlsx"
+    # df = pd.read_excel(path)
+    # add_phase(df)
 
 
-    # df = pd.read_excel("/Users/ziweishi/Desktop/Book1.xlsx")
-    # guid_list = df["ImgCollGUID"].to_list()
-    # phase = df["phase"].to_list()
-    # index=0
-    # print(len(guid_list))
-    # for i in guid_list:
-    #     phase_num = phase[index]
-    #     index+=1
-    #     update_guid(i,"phase",phase_num)
-    #     print(index)
+    df = pd.read_excel("/Users/ziweishi/Documents/DFU_regular_update/20230830tra_1/20230830tra_1_download_list.xlsx")
+    guid_list = df["ImgCollGUID"].to_list()
+    phase = df["phase"].to_list()
+    index=0
+    print(len(guid_list))
+    for i in guid_list:
+        phase_num = phase[index]
+        update_guid(table,i,"phase",phase_num)
+        update_guid(table, i, "StudyType", "training")
+        index += 1
+        print(index)
+
 
 
 

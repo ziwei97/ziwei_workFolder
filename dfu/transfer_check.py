@@ -20,13 +20,11 @@ def refresh_sql_database(check_list):
             site_list[i]["type"] = "s3"
         else:
             print("wrong site")
-
     sql_info = sql_get.dfu_sql_find(site_list)
     sql_path = sql_info[0]
     b = sql_info[1]
     for i in check_list:
         site_list[i]["sql_path"] = sql_path[i]
-        print(i + " " + sql_path[i])
         if b == "yes":
             connection = pymysql.connect(
                 host='127.0.0.1',
@@ -36,7 +34,6 @@ def refresh_sql_database(check_list):
                 cursorclass=pymysql.cursors.DictCursor
             )
             cursor = connection.cursor()
-
             # 打开SQL文件并执行其中的SQL语句
             with open(sql_path[i], 'r') as sql_file:
                 sql_statements = sql_file.read().split(';')
@@ -47,12 +44,8 @@ def refresh_sql_database(check_list):
             connection.commit()
             cursor.close()
             connection.close()
+    return site_list
 
-    a = input("is the path right? ")
-    if a != "no":
-        return site_list
-    else:
-        return False
 
 
 def has_element(value,element_list):
@@ -106,7 +99,7 @@ def server_table_output(sql_path,site):
     df.to_excel(og_file_path)
 
     if site != "memdfu":
-        element_list = ["000", "99","8888"]
+        element_list = ["000", "99","8888","77"]
     else:
         element_list = ["0000", "99","77"]
 
@@ -140,9 +133,20 @@ def server_table_output(sql_path,site):
             lambda x: x.replace("02042426", "206-010") if "02042426" in x else x)
         df["MedicalNumber"] = df["MedicalNumber"].apply(
             lambda x: "206-" + x if "206-" not in x else x)
+    if site == "hilloh":
+        df["MedicalNumber"] = df["MedicalNumber"].apply(
+            lambda x: x.replace("208-012", "207-012") if "208-012" in x else x)
+        df["MedicalNumber"] = df["MedicalNumber"].apply(lambda x: "207-" + x if "207" not in x else x)
+
     if site == "lahdfu":
         df["MedicalNumber"] = df["MedicalNumber"].apply(
-            lambda x: x.replace("211-01", "211-001") if "211-01" in x else x)
+            lambda x: x.replace("211-001", "211-01") if "211-001" in x else x)
+        df["MedicalNumber"] = df["MedicalNumber"].apply(
+            lambda x: x.replace("211-0", "211-00") if "211-0" in x else x)
+    if site == "rsci":
+        df["MedicalNumber"] = df["MedicalNumber"].apply(
+            lambda x: "292-" + x if "292-" not in x else x)
+
     if site == "rsci":
         df["MedicalNumber"] = df["MedicalNumber"].apply(
             lambda x: "292-" + x if "292-" not in x else x)
@@ -337,29 +341,28 @@ if __name__ =="__main__":
 
 
     # local_site = ["nynw", "ocer", "whfa", "youngst", "lvrpool", "memdfu", "hilloh", "grovoh", "mentoh", "encinogho","lahdfu","rsci"]
-    check_site = [ "hilloh"]
+    check_site = ["nynw", "ocer", "whfa", "youngst", "lvrpool", "memdfu", "hilloh", "grovoh", "mentoh", "encinogho","lahdfu","rsci"]
     check_list = {}
 
     site_list = refresh_sql_database(check_site)
-    if site_list !=False:
-        for check in check_site:
-            check_list[check] = site_list[check]
+    for check in check_site:
+        check_list[check] = site_list[check]
 
-        db = download_whole_dynamodb_table.download_table("DFU_Master_ImageCollections")
-        db = db[db["StudyName"] == "DFU_SSP"]
+    db = download_whole_dynamodb_table.download_table("DFU_Master_ImageCollections")
+    db = db[db["StudyName"] == "DFU_SSP"]
 
-        data_sites = []
-        for i in check_list.keys():
-            path = check_list[i]["sql_path"]
-            df_guid, df_image, site, check_path = server_table_output(path,i)
-            site_image = image_check(db, df_guid, df_image, site, check_path)
-            data_sites.append(df_guid)
+    data_sites = []
+    for i in check_list.keys():
+        path = check_list[i]["sql_path"]
+        df_guid, df_image, site, check_path = server_table_output(path, i)
+        site_image = image_check(db, df_guid, df_image, site, check_path)
+        data_sites.append(df_guid)
 
-        union_df = pd.concat(data_sites)
-        union_df.to_excel("/Users/ziweishi/Desktop/dfu_site_check.xlsx")
+    union_df = pd.concat(data_sites)
+    union_df.to_excel("/Users/ziweishi/Desktop/dfu_site_check.xlsx")
 
-    else:
-        print("Wrong Path!")
+
+
 
 
 

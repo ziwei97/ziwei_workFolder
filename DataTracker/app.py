@@ -47,11 +47,13 @@ def site_detail():
     cursor.execute(query2)
     collection_result2 = cursor.fetchall()
     df2 = pd.DataFrame(collection_result2)
+    df2.to_excel("/Users/ziweishi/Desktop/dha.xlsx")
     data2 = df2.reset_index(drop=True)
     tables = [data1,data2]
     table_forms = [table.to_html(
         classes='table custom-style', index=False, border=2) for table in tables]
-    print(table_forms)
+
+
     return render_template("site_detail.html",results=table_forms)
 
 @app.route('/sum1')
@@ -61,6 +63,7 @@ def site_detailq():
     collection_result = cursor.fetchall()
     df = pd.DataFrame(collection_result)
     data = df.reset_index(drop=True)
+
     return render_template("site_detail.html",results=data.to_html(
         classes='table custom-style',index=False,border=2))
 

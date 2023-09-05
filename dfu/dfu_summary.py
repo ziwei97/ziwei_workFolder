@@ -7,6 +7,7 @@ import numpy as np
 import util.update_attr as update
 import util.download_whole_dynamodb_table as db
 import boto3
+from datetime import datetime
 
 
 def output_total():
@@ -25,12 +26,12 @@ def output_total():
                 df_guid, df_image, site, check_path = transfer_check.server_table_output(path, i)
                 data_sites.append(df_guid)
             union_df = pd.concat(data_sites)
-            union_df.to_excel("/Users/ziweishi/Desktop/dfu_check.xlsx")
+            union_df.to_excel("../Documents/dfu_all.xlsx")
             return union_df
         else:
             print("Wrong Path!")
     else:
-        df = pd.read_excel("/Users/ziweishi/Desktop/dfu_check.xlsx")
+        df = pd.read_excel("../Documents/dfu_all.xlsx")
         return df
 
 
@@ -68,7 +69,6 @@ def update_subject_type():
     dynamodb = boto3.resource('dynamodb')
     table_name = 'DFU_Master_ImageCollections'  # 替换为你的 DynamoDB 表名
     table = dynamodb.Table(table_name)
-
     sub_info = pd.read_excel("/Users/ziweishi/Desktop/wausi_subject.xlsx")
     sub_list =sub_info["MedicalNumber"].to_list()
     dfu = db.download_table("DFU_Master_ImageCollections")
@@ -90,19 +90,13 @@ def update_subject_type():
             print(i+ " no subject")
 
 
-
-
 def make_summary(cur_date):
-    # df_type = pd.read_excel("/Users/ziweishi/Desktop/wausi_subject.xlsx",sheet_name="total")
     df_type = subject_info()
     df_guid = output_total()
-    df = pd.merge(df_type,df_guid,on="MedicalNumber",how="left")
-    df = df[df["ImgCollGUID"].notna()]
+    df = pd.merge(df_type,df_guid,on="MedicalNumber",how="outer")
+    df.to_excel("/Users/ziweishi/Desktop/dfu_all_check.xlsx")
+    # df = df[df["ImgCollGUID"].notna()]
 
-
-
-
-    # df.to_excel("/Users/ziweishi/Desktop/check.xlsx")
 
     df_tra = df[df["type"]=="training"]
     df_tra = df_tra.copy()
@@ -152,10 +146,6 @@ def make_summary(cur_date):
     df_tra_final = pd.concat(df_tra_list)
 
     db_info = db.download_table("DFU_Master_ImageCollections")
-    db_tra = db_info[db_info["StudyType"]=="training"]
-
-
-
 
     df_val = df[df["type"] == "validation"]
     df_val = df_val.copy()
@@ -205,11 +195,6 @@ def make_summary(cur_date):
     df_val_list = [val_site_sum, df_val_total]
     df_val_final = pd.concat(df_val_list)
 
-    db_val = db_info[db_info["StudyType"] == "validation"]
-    draw_val = len(db_val[db_val["phase"].notna()])
-
-    print("Total Validation Left img not draw is " +str(len(val_img_total)-draw_val)+" ratio: " +str(draw_val) + "/" + str(len(val_img_total)))
-
     file = "WAUSI_Summary_" + cur_date + ".xlsx"
     path = "/Users/ziweishi/Desktop/DFU_Summary/" + file
 
@@ -234,8 +219,46 @@ def make_summary(cur_date):
     # 保存更改后的 Excel 文件
     workbook.save(path)
 
+def output_summary(date):
+    a = input("Do you use the latest WAUSI Enrollment tracker file?")
+    if a != "no":
+        make_summary(date)
+    else:
+        print("go to download!")
+
+
+def get_new_transfer():
+    max_time = datetime(2020, 1, 1)
+    max_file = 0
+    tag = ""
+    file_names=[]
+    for i in file_names:
+        a = i.replace("-", "_")
+
+        if "full" in a:
+            max_file = i
+            tag = "full"
+            break
+        else:
+            time = a.split("_")
+            year = time[-1]
+            year = "20" + year[-2:]
+            date = time[-2]
+            month = time[-3]
+            date_time = month + "-" + date + "-" + year
+            real_time = datetime.strptime(date_time, '%m-%d-%Y')
+            if real_time > max_time:
+                max_time = real_time
+                max_file = i
+                tag = date_time
+            else:
+                max_time = max_time
+    print(tag)
+
+
 
 if __name__ =="__main__":
-    make_summary("082223")
-    # output_total()
+    # output_summary("083023tra")
+
+    output_total()
     # update_subject_type()

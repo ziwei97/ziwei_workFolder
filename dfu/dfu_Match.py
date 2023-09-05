@@ -76,9 +76,6 @@ def training_time_table_transfer(update_date):
     #training toyin
     vt1 = toyin_castor_check.clean_training_track(update_date)
 
-    # #validation toyin
-    # vt1 = toyin_castor_check.clean_validation_track(update_date)
-
     vt = vt1[0]
     issue = vt1[1]
     status = vt1[2]
@@ -86,9 +83,6 @@ def training_time_table_transfer(update_date):
     vt_sub = vt["SubjectID"].to_list()
     db_info = clean_dfu_db(update_date,vt_sub)
     db_source = db_info[1]
-
-
-
 
     sub = db_info[0]
     list_b = []
@@ -313,7 +307,6 @@ def training_time_table_transfer(update_date):
     df_final.to_excel(match_final_path)
     return df_final
 
-
 def validation_time_table_transfer(update_date):
     og_path = "/Users/ziweishi/Documents/DFU_regular_update/"
     path = os.path.join(og_path, update_date)
@@ -331,6 +324,8 @@ def validation_time_table_transfer(update_date):
     status = vt1[2]
 
     vt_sub = vt["SubjectID"].to_list()
+
+    print(len(vt))
     db_info = clean_dfu_db(update_date, vt_sub)
     db_source = db_info[1]
 
@@ -554,5 +549,7 @@ def validation_time_table_transfer(update_date):
 
 
 if __name__ == "__main__":
-    training_time_table_transfer("20230815tra")
+    # a = input("Do you use the latest WAUSI Enrollment tracker file?")
+    # training_time_table_transfer("20230830training")
+    validation_time_table_transfer("20230830validation")
 
