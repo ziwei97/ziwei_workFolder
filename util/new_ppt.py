@@ -8,7 +8,7 @@ from pptx.enum import text
 from pptx.enum.text import PP_ALIGN
 import pandas as pd
 
-
+#test"
 class AutoSlideGen:
     def __init__(self, imgLoc, maskKeyWord, saveTo):
         self.imgLoc = imgLoc
