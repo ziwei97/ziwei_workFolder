@@ -8,6 +8,7 @@ import util.update_attr as update
 import check_data
 
 
+
 s3 = boto3.resource('s3')
 dynamodb = boto3.resource('dynamodb')
 
@@ -84,7 +85,7 @@ def mask_prepare(df,attrs,prefix):
     s3t = s3transfer.create_transfer_manager(s3_client, transfer_config)
 
     for i in guid:
-        print(index)
+        # print(index)
         bucket = get_attribute(table, i, "Bucket")
         index += 1
         for j in attrs:
@@ -116,8 +117,6 @@ def mask_prepare(df,attrs,prefix):
             except:
                 print(i + " missing " + j)
     s3t.shutdown()
-
-
 
 
 # download to check image quality
@@ -162,7 +161,6 @@ def mask_download(df_file_check,folder):
     print("done")
 
 
-
 def delete_archived(df,df_file):
     df_archived = df[df["phase"]=="archived"]
     ar_list = df_archived["ImgCollGUID"].to_list()
@@ -195,46 +193,65 @@ def update_guid_phase(table,df,value):
             update.update_guid(table, i, "phase", value)
 
 
-
-def prepare_flow(df,folder,attrs,prefix,bucket):
-    mask_prepare(df,attrs,prefix)
-    df_file = check_data.mask_check(bucket,prefix)
-    mask_download(df_file,folder)
-    return df_file
-
-
-
-
-def update_flow(df,df_file,table,value):
-    delete_archived(df,df_file)
-    update_guid_phase(table,df,value)
+# def prepare_flow(df,folder,attrs,prefix,bucket):
+#     mask_prepare(df,attrs,prefix)
+#     df_file = check_data.mask_check(bucket,prefix)
+#     mask_download(df_file,folder)
+#     return df_file
+#
+#
+# def update_flow(df,df_file,table,value):
+#     delete_archived(df,df_file)
+#     update_guid_phase(table,df,value)
 
 
 
 
 if __name__ == "__main__":
+    table_name = 'DFU_Master_ImageCollections'
+    table = dynamodb.Table(table_name)
+    folder_path = "/Users/ziweishi/Documents/check/"
+    bucket = "spectralmd-datashare"
     attrs=["PseudoColor","Assessing"]
-    prefix="DataScience/WAUSI_Phase4_PseudoAssess_0830/"
-    path = "../Documents/download_file/tra_download_list.xlsx"
+
+
+    prefix="DataScience/WAUSI_validation_Phase3_PseudoAssess_0911/"
+
+    # path = dfu_Match.training_time_table_transfer("20230911tra")
+    # path ="../Documents/download_file/tra_download_list.xlsx"
+    path ="../Documents/download_file/val_download_list.xlsx"
 
     df = pd.read_excel(path)
     df = df[df["PseudoColor"].notna()]
-    bucket = "spectralmd-datashare"
-    # # data_prepare(df,attrs,prefix)
-    folder_path = "/Users/ziweishi/Documents/check"
 
-    table_name = 'DFU_Master_ImageCollections'
-    table = dynamodb.Table(table_name)
+    mask_prepare(df,attrs,prefix)
 
 
+    check_data.mask_check(bucket,prefix)
 
-    input = "have you already check archived images?"
-    if input == "yes" :
-        df_file_check = pd.read_excel("../Documents/file_check.xlsx")
-        phase_value = "t5"
-        update_flow(df,df_file_check,table,phase_value)
-    else:
-        prepare_flow(df, folder_path, attrs, prefix, bucket)
+
+    file_check_path = "../Documents/file_check.xlsx"
+    df_file = pd.read_excel(file_check_path)
+    mask_download(df_file,folder_path)
+
+
+    print("aws s3 cp s3://spectralmd-datashare/"+prefix+ " /Users/ziweishi/Documents/check  --recursive")
+    print("aws s3 cp s3://spectralmd-datashare/"+prefix+ " /your/target  --recursive")
+
+    # revise_path = "../../DFU_regular_update/20230911val/20230911val_download_list.xlsx"
+    # delete_archived(df, df_file)
+    # update_guid_phase(table, df, "t5")
+
+
+
+
+
+
+
+
+
+
+
 
 
 

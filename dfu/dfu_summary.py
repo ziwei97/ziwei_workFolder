@@ -33,31 +33,6 @@ def server_db_info():
     return df
 
 
-# def update_subject_type():
-#     dynamodb = boto3.resource('dynamodb')
-#     table_name = 'DFU_Master_ImageCollections'  # 替换为你的 DynamoDB 表名
-#     table = dynamodb.Table(table_name)
-#     sub_info = pd.read_excel("/Users/ziweishi/Desktop/wausi_subject.xlsx")
-#     sub_list =sub_info["MedicalNumber"].to_list()
-#     dfu = db.download_table("DFU_Master_ImageCollections")
-#     dfu_wausi = dfu[dfu["StudyName"]=="DFU_SSP"]
-#     dfu_wausi = dfu_wausi[dfu_wausi["SubjectID"].isin(sub_list)]
-#     print(len(dfu_wausi))
-#     guid = dfu_wausi["ImgCollGUID"].to_list()
-#     index=0
-#     for i in guid:
-#         print(index)
-#         index+=1
-#         try:
-#             sub = dfu_wausi[dfu_wausi["ImgCollGUID"]==i]
-#             subject = sub["SubjectID"].iloc[0]
-#             type_sub = sub_info[sub_info["MedicalNumber"]==subject]
-#             type = type_sub["type"].iloc[0]
-#             update.update_guid(table,i,"StudyType",type)
-#         except:
-#             print(i+ " no subject")
-
-
 def make_summary(cur_date):
     df = server_db_info()
     df_tra = df[df["type"]=="training"]
@@ -178,38 +153,6 @@ def make_summary(cur_date):
     return path
 
 
-
-
-# def get_new_transfer():
-#     max_time = datetime(2020, 1, 1)
-#     max_file = 0
-#     tag = ""
-#     file_names=[]
-#     for i in file_names:
-#         a = i.replace("-", "_")
-#
-#         if "full" in a:
-#             max_file = i
-#             tag = "full"
-#             break
-#         else:
-#             time = a.split("_")
-#             year = time[-1]
-#             year = "20" + year[-2:]
-#             date = time[-2]
-#             month = time[-3]
-#             date_time = month + "-" + date + "-" + year
-#             real_time = datetime.strptime(date_time, '%m-%d-%Y')
-#             if real_time > max_time:
-#                 max_time = real_time
-#                 max_file = i
-#                 tag = date_time
-#             else:
-#                 max_time = max_time
-#     print(tag)
-
-
-
 def match_cal(match_path):
     df = pd.read_excel(match_path)
     sub_list = df["SubjectID"].to_list()
@@ -288,7 +231,7 @@ def match_cal(match_path):
     return df_info,info,sv
 
 
-def num_check(cur_date):
+def date_match_check(cur_date):
     df_tra = match_cal("../Documents/dfu_latest_match_training.xlsx")
     df_val= match_cal("../Documents/dfu_latest_match_validation.xlsx")
     sv = df_tra[2]
@@ -382,7 +325,6 @@ def num_check(cur_date):
 
 
 
-
 if __name__ =="__main__":
-    num_check("091123")
+    date_match_check("091123")
 

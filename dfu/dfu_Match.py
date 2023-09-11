@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 from util import download_whole_dynamodb_table
 import numpy as np
-import toyin_castor_check
+import dfu.toyin_castor_check as toyin_castor_check
 import boto3
 import util.server_all_output as server_all_output
 
@@ -61,7 +61,7 @@ def clean_dfu_db(check_date,sub_list):
     sub = sub_copy
     sub = sub[sub["SubjectID"].isin(sub_list)]
 
-    path ="../../Documents/DFU_regular_update/"+check_date+"/database"+"_"+check_date+".xlsx"
+    path ="../../DFU_regular_update/"+check_date+"/database"+"_"+check_date+".xlsx"
     sub.to_excel(path)
     print("total device collection num is: " + str(len(sub)))
 
@@ -309,10 +309,10 @@ def training_time_table_transfer(update_date):
     data_guid = zip(list_b, sub_status,time_order, visit_b, time_match, num_list,list_guid)
     df_final = pd.DataFrame(data=data_guid,columns=["SubjectID", "Complete_Status","VisitTime", "Castor_Date", "Match_Device_Date","Num_GUID", "ImgCollGUID"])
     df_final.to_excel(match_final_path)
-    return df_final
+    return list_download_path
 
 def validation_time_table_transfer(update_date):
-    og_path = "/Users/ziweishi/Documents/DFU_regular_update/"
+    og_path = "../../Documents/DFU_regular_update/"
     path = os.path.join(og_path, update_date)
     if os.path.isdir(path) == False:
         os.mkdir(path)
@@ -550,12 +550,12 @@ def validation_time_table_transfer(update_date):
                             columns=["SubjectID", "Complete_Status", "VisitTime", "Castor_Date", "Match_Device_Date",
                                      "Num_GUID", "ImgCollGUID"])
     df_final.to_excel(match_final_path)
-    return df_final
+    return list_download_path
 
 
 
 if __name__ == "__main__":
     # a = input("Do you use the latest WAUSI Enrollment tracker file?")
-    training_time_table_transfer("20230905tra")
-    validation_time_table_transfer("20230905val")
+    # training_time_table_transfer("20230911tra")
+    validation_time_table_transfer("20230911val")
 

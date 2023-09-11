@@ -59,19 +59,19 @@ if __name__ == "__main__":
     table = dynamodb.Table(table_name)
 
 
-    df = pd.read_excel("/Users/ziweishi/Documents/DFU_regular_update/20230830tra_1/20230830tra_1_download_list.xlsx")
-    guid_list = df["ImgCollGUID"].to_list()
-    phase = df["phase"].to_list()
-    index=0
-    print(len(guid_list))
-    for i in guid_list:
-        phase_num = phase[index]
-        update_guid(table,i,"phase",phase_num)
-        update_guid(table, i, "StudyType", "training")
-        index += 1
-        print(index)
+    # df = pd.read_excel("/Users/ziweishi/Documents/DFU_regular_update/20230830tra_1/20230830tra_1_download_list.xlsx")
+    # guid_list = df["ImgCollGUID"].to_list()
+    # phase = df["phase"].to_list()
+    # index=0
+    # print(len(guid_list))
+    # for i in guid_list:
+    #     phase_num = phase[index]
+    #     update_guid(table,i,"phase",phase_num)
+    #     update_guid(table, i, "StudyType", "training")
+    #     index += 1
+    #     print(index)
 
-
+    update_guid(table,"6aaa323e-4cba-481b-810d-18a8bdba8df4","phase","archived")
 
 
 
