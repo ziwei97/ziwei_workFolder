@@ -5,7 +5,7 @@ from util import download_whole_dynamodb_table
 import numpy as np
 import toyin_castor_check
 import boto3
-import dfu_summary
+import util.server_all_output as server_all_output
 
 s3 = boto3.resource('s3')
 dynamodb = boto3.resource('dynamodb')
@@ -45,7 +45,7 @@ def fuzzy_date_match(date1, date2, day_range, date_format='%d-%m-%Y'):
 
 def clean_dfu_db(check_date,sub_list):
     db_info = download_whole_dynamodb_table.download_table('DFU_Master_ImageCollections')
-    guid =  dfu_summary.output_total()
+    guid =  server_all_output.output_total()
     guid = guid[['MedicalNumber', 'ImgCollGUID', 'CaptureDate',"ImageCollFolderName"]]
     guid['SubjectID']=guid['MedicalNumber']
     guid = guid[['SubjectID', 'ImgCollGUID', 'CaptureDate',"ImageCollFolderName"]]
@@ -61,14 +61,14 @@ def clean_dfu_db(check_date,sub_list):
     sub = sub_copy
     sub = sub[sub["SubjectID"].isin(sub_list)]
 
-    path ="/Users/ziweishi/Documents/DFU_regular_update/"+check_date+"/database"+"_"+check_date+".xlsx"
+    path ="../../Documents/DFU_regular_update/"+check_date+"/database"+"_"+check_date+".xlsx"
     sub.to_excel(path)
     print("total device collection num is: " + str(len(sub)))
 
     return sub,db_info
 
 def training_time_table_transfer(update_date):
-    og_path = "/Users/ziweishi/Documents/DFU_regular_update/"
+    og_path = "../../DFU_regular_update/"
     path = os.path.join(og_path,update_date)
     if os.path.isdir(path)==False:
         os.mkdir(path)
@@ -293,6 +293,8 @@ def training_time_table_transfer(update_date):
     list_download_path = os.path.join(path, list_download_name)
     final_download_df = final_guid_df[final_guid_df["phase"].isna()]
     final_download_df.to_excel(list_download_path)
+    final_download_df.to_excel("../Documents/download_file/tra_download_list.xlsx")
+
 
     final_none_match = zip(none_match_subject,none_match_guid,none_cap_date)
     final_none_df = pd.DataFrame(final_none_match,columns=["SubjectID","ImgCollGUID","VisitTime"])
@@ -532,6 +534,7 @@ def validation_time_table_transfer(update_date):
     list_download_path = os.path.join(path, list_download_name)
     final_download_df = final_guid_df[final_guid_df["phase"].isna()]
     final_download_df.to_excel(list_download_path)
+    final_download_df.to_excel("../Documents/download_file/val_download_list.xlsx")
 
     final_none_match = zip(none_match_subject, none_match_guid, none_cap_date)
     final_none_df = pd.DataFrame(final_none_match, columns=["SubjectID", "ImgCollGUID", "VisitTime"])

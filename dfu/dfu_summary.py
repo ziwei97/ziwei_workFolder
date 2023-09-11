@@ -1,105 +1,66 @@
 from collections import Counter
 from openpyxl import load_workbook
 from openpyxl.styles import Alignment
-import transfer_check
 import pandas as pd
 import numpy as np
-import util.update_attr as update
-import util.download_whole_dynamodb_table as db
-import boto3
-from datetime import datetime
+import util.server_all_output as server_all_output
 
 
-def output_total():
-    a = input("new output?")
-    if a =="yes":
-        check_site = ["nynw", "ocer", "whfa", "youngst", "lvrpool", "memdfu", "hilloh", "grovoh", "mentoh",
-                      "encinogho", "lahdfu", "rsci"]
-        site_list = transfer_check.refresh_sql_database(check_site)
-        if site_list != False:
-            check_list = {}
-            for check in check_site:
-                check_list[check] = site_list[check]
-            data_sites = []
-            for i in check_list.keys():
-                path = check_list[i]["sql_path"]
-                df_guid, df_image, site, check_path = transfer_check.server_table_output(path, i)
-                data_sites.append(df_guid)
-            union_df = pd.concat(data_sites)
-            union_df.to_excel("../Documents/dfu_all.xlsx")
-            return union_df
+def server_db_info():
+    server_db = server_all_output.output_total()
+    df = pd.DataFrame()
+    df["MedicalNumber"] = server_db["MedicalNumber"].to_list()
+    df["site"] = df["MedicalNumber"].apply(lambda x: str(x[0:3]))
+    tr_info = {"201": "nynw", "202": "ocer", "203": "whfa", "204": "youngst", "205": "lvrpool", "292": "rsci"}
+    vd_info = {"206": "memdfu", "207": "hilloh", "208": "grovoh", "209": "mentoh","210": "encinogho", "211": "lahdfu"}
+    total_info = {}
+    for i in tr_info.keys():
+        total_info[i] = tr_info[i]
+    for j in vd_info.keys():
+        total_info[j] = vd_info[j]
+    type_list = []
+    site_name_list = []
+    site_list = df["site"].to_list()
+    for i in site_list:
+        if i in tr_info.keys():
+            type_list.append("training")
+            site_name_list.append(total_info[i])
         else:
-            print("Wrong Path!")
-    else:
-        df = pd.read_excel("../Documents/dfu_all.xlsx")
-        return df
-
-
-
-def subject_info():
-    tr_src =  pd.read_excel("/Users/ziweishi/Desktop/WAUSI.xlsx", sheet_name="Training Dataset")
-    vd_src = pd.read_excel("/Users/ziweishi/Desktop/WAUSI.xlsx", sheet_name="Validation Dataset")
-
-    tr = pd.DataFrame()
-    tr["MedicalNumber"]=tr_src["Subject ID"].to_list()
-    tr["Status"]= tr_src["Completed Study (or withdrawn/LTF)"].to_list()
-    tr["site"] = tr["MedicalNumber"].apply(lambda x: x[0:3])
-    tr_info={"201":"nynw","202":"ocer","203":"whfa","204":"youngst","205":"lvrpool","292":"rsci"}
-    tr["site_name"] = tr["site"].apply(lambda x: tr_info[x])
-    tr["type"]="training"
-
-    vd = pd.DataFrame()
-    vd["MedicalNumber"] = vd_src["Subject ID"].to_list()
-    vd["Status"] = vd_src["Completed Study (or withdrawn/LTF)"].to_list()
-    vd["site"] = vd["MedicalNumber"].apply(lambda x: x[0:3])
-    vd_info = {"206": "memdfu", "207": "hilloh", "208": "grovoh","209":"mentoh",
-               "210":"encinogho","211":"lahdfu"}
-    vd["site_name"] = vd["site"].apply(lambda x: vd_info[x])
-    vd["type"] = "validation"
-
-    total = [tr,vd]
-
-    df = pd.concat(total)
-
-    df.to_excel("/Users/ziweishi/Desktop/wausi_subject.xlsx")
+            type_list.append("validation")
+            site_name_list.append(total_info[i])
+    df["type"] = type_list
+    df["site_name"] = site_name_list
     return df
 
 
-def update_subject_type():
-    dynamodb = boto3.resource('dynamodb')
-    table_name = 'DFU_Master_ImageCollections'  # 替换为你的 DynamoDB 表名
-    table = dynamodb.Table(table_name)
-    sub_info = pd.read_excel("/Users/ziweishi/Desktop/wausi_subject.xlsx")
-    sub_list =sub_info["MedicalNumber"].to_list()
-    dfu = db.download_table("DFU_Master_ImageCollections")
-    dfu_wausi = dfu[dfu["StudyName"]=="DFU_SSP"]
-    dfu_wausi = dfu_wausi[dfu_wausi["SubjectID"].isin(sub_list)]
-    print(len(dfu_wausi))
-    guid = dfu_wausi["ImgCollGUID"].to_list()
-    index=0
-    for i in guid:
-        print(index)
-        index+=1
-        try:
-            sub = dfu_wausi[dfu_wausi["ImgCollGUID"]==i]
-            subject = sub["SubjectID"].iloc[0]
-            type_sub = sub_info[sub_info["MedicalNumber"]==subject]
-            type = type_sub["type"].iloc[0]
-            update.update_guid(table,i,"StudyType",type)
-        except:
-            print(i+ " no subject")
+# def update_subject_type():
+#     dynamodb = boto3.resource('dynamodb')
+#     table_name = 'DFU_Master_ImageCollections'  # 替换为你的 DynamoDB 表名
+#     table = dynamodb.Table(table_name)
+#     sub_info = pd.read_excel("/Users/ziweishi/Desktop/wausi_subject.xlsx")
+#     sub_list =sub_info["MedicalNumber"].to_list()
+#     dfu = db.download_table("DFU_Master_ImageCollections")
+#     dfu_wausi = dfu[dfu["StudyName"]=="DFU_SSP"]
+#     dfu_wausi = dfu_wausi[dfu_wausi["SubjectID"].isin(sub_list)]
+#     print(len(dfu_wausi))
+#     guid = dfu_wausi["ImgCollGUID"].to_list()
+#     index=0
+#     for i in guid:
+#         print(index)
+#         index+=1
+#         try:
+#             sub = dfu_wausi[dfu_wausi["ImgCollGUID"]==i]
+#             subject = sub["SubjectID"].iloc[0]
+#             type_sub = sub_info[sub_info["MedicalNumber"]==subject]
+#             type = type_sub["type"].iloc[0]
+#             update.update_guid(table,i,"StudyType",type)
+#         except:
+#             print(i+ " no subject")
 
 
 def make_summary(cur_date):
-    df_type = subject_info()
-    df_guid = output_total()
-    df = pd.merge(df_type,df_guid,on="MedicalNumber",how="right")
-    # df.to_excel("/Users/ziweishi/Desktop/dfu_all_check.xlsx")
-    # df = df[df["ImgCollGUID"].notna()]
+    df = server_db_info()
     df_tra = df[df["type"]=="training"]
-    df_tra = df_tra.copy()
-    df_tra["site"] = df_tra["site"].apply(lambda x: str(x))
-
     tra_img_total = df_tra["MedicalNumber"].to_list()
     tra_sub_image_count = Counter(tra_img_total)
     tra_img_sum = pd.DataFrame(list(tra_sub_image_count.items()), columns=["SubjectID", "Image_Num"])
@@ -146,9 +107,6 @@ def make_summary(cur_date):
     # db_info = db.download_table("DFU_Master_ImageCollections")
 
     df_val = df[df["type"] == "validation"]
-    df_val = df_val.copy()
-    df_val["site"] = df_val["site"].apply(lambda x: str(x))
-
     val_img_total = df_val["MedicalNumber"].to_list()
     val_sub_image_count = Counter(val_img_total)
     val_img_sum = pd.DataFrame(list(val_sub_image_count.items()), columns=["SubjectID", "Image_Num"])
@@ -196,9 +154,6 @@ def make_summary(cur_date):
     file = "WAUSI_Summary_latest.xlsx"
     path = "../Documents/DFU_Summary/" + file
 
-    local_name = "WAUSI_Summary_"+cur_date+".xlsx"
-    local_path = "/Users/ziweishi/Desktop/DFU_Summary/"+local_name
-
 
 
     writer = pd.ExcelWriter(path, engine='xlsxwriter')
@@ -217,7 +172,7 @@ def make_summary(cur_date):
                 cell.alignment = Alignment(horizontal='center', vertical='center')
     # 保存更改后的 Excel 文件
     workbook.save(path)
-    workbook.save(local_path)
+
 
 
     return path
@@ -225,33 +180,33 @@ def make_summary(cur_date):
 
 
 
-def get_new_transfer():
-    max_time = datetime(2020, 1, 1)
-    max_file = 0
-    tag = ""
-    file_names=[]
-    for i in file_names:
-        a = i.replace("-", "_")
-
-        if "full" in a:
-            max_file = i
-            tag = "full"
-            break
-        else:
-            time = a.split("_")
-            year = time[-1]
-            year = "20" + year[-2:]
-            date = time[-2]
-            month = time[-3]
-            date_time = month + "-" + date + "-" + year
-            real_time = datetime.strptime(date_time, '%m-%d-%Y')
-            if real_time > max_time:
-                max_time = real_time
-                max_file = i
-                tag = date_time
-            else:
-                max_time = max_time
-    print(tag)
+# def get_new_transfer():
+#     max_time = datetime(2020, 1, 1)
+#     max_file = 0
+#     tag = ""
+#     file_names=[]
+#     for i in file_names:
+#         a = i.replace("-", "_")
+#
+#         if "full" in a:
+#             max_file = i
+#             tag = "full"
+#             break
+#         else:
+#             time = a.split("_")
+#             year = time[-1]
+#             year = "20" + year[-2:]
+#             date = time[-2]
+#             month = time[-3]
+#             date_time = month + "-" + date + "-" + year
+#             real_time = datetime.strptime(date_time, '%m-%d-%Y')
+#             if real_time > max_time:
+#                 max_time = real_time
+#                 max_file = i
+#                 tag = date_time
+#             else:
+#                 max_time = max_time
+#     print(tag)
 
 
 
@@ -300,7 +255,7 @@ def match_cal(match_path):
                 info[i][vis] = info[i][vis]
         index += 1
     subject = info.keys()
-    column_name = ["Match", "Drawn","Archive","not_Drawn"]
+    column_name = ["Status","Match","not_Match","Drawn","Archive","not_Drawn"]
     sv = []
     for l in range(1, 13):
         p = "SV_" + str(l) + "_Date"
@@ -319,7 +274,7 @@ def match_cal(match_path):
         try:
             df_info.loc[i, "Match"] = num[i]
         except:
-            df_info.loc[i, "Match"] = np.NAN
+            df_info.loc[i, "Match"] = 0
         try:
             df_info.loc[i, "Drawn"] = draw[i]
         except:
@@ -328,6 +283,7 @@ def match_cal(match_path):
             df_info.loc[i, "Archive"] = archive[i]
         except:
             df_info.loc[i, "Archive"] = 0
+
     df_info["not_Drawn"] = df_info["Match"]-df_info["Drawn"]-df_info["Archive"]
     return df_info,info,sv
 
@@ -350,14 +306,16 @@ def num_check(cur_date):
     tra_sub = df_tra_cas["SubjectID"].to_list()
     for i in tra_sub:
         tra_cas_sub = df_tra_cas[df_tra_cas["SubjectID"]==i]
+        sta = tra_cas_sub["status"].iloc[0]
+        df_tra_cal.loc[i, "Status"] = sta
         for p in sv:
             cas = tra_cas_sub[p].iloc[0]
             if type(cas) != float:
                 try:
                     match = tra_info[i][p]
-                    df_tra_cal.loc[i,p] = match
+                    df_tra_cal.loc[i, p] = match
                 except:
-                    df_tra_cal.loc[i,p] = "not_match"
+                    df_tra_cal.loc[i,p] = "not match"
             else:
                 df_tra_cal.loc[i, p] = np.nan
 
@@ -369,6 +327,8 @@ def num_check(cur_date):
     val_sub = df_val_cas["SubjectID"].to_list()
     for i in val_sub:
         val_cas_sub = df_val_cas[df_val_cas["SubjectID"] == i]
+        sta =val_cas_sub["status"].iloc[0]
+        df_val_cal.loc[i, "Status"] = sta
         for p in sv:
             cas = val_cas_sub[p].iloc[0]
             if type(cas) != float:
@@ -395,6 +355,9 @@ def num_check(cur_date):
     df_final_sum_tra = pd.merge(df_tra_sum,df_tra_cal,on="SubjectID",how="left")
     df_final_sum_val = pd.merge(df_val_sum,df_val_cal,on="SubjectID",how="left")
 
+    df_final_sum_tra["not_Match"] = df_final_sum_tra["Image_Num"]-df_final_sum_tra["Match"]
+    df_final_sum_val["not_Match"] = df_final_sum_val["Image_Num"]-df_final_sum_val["Match"]
+
     new_path = "../Documents/DFU_Summary/WAUSI_Summary_Calculation.xlsx"
     writer = pd.ExcelWriter(new_path, engine='xlsxwriter')
     df_tra_site.to_excel(writer, sheet_name='training_site_summary', index=False)
@@ -413,9 +376,13 @@ def num_check(cur_date):
     # 保存更改后的 Excel 文件
     workbook.save(new_path)
 
+    local_name = "WAUSI_Summary_"+cur_date+".xlsx"
+    local_path = "../../../Desktop/DFU_Summary/"+local_name
+    workbook.save(local_path)
+
 
 
 
 if __name__ =="__main__":
-    num_check("090523")
+    num_check("091123")
 

@@ -5,6 +5,7 @@ import os
 from util import color_drawing, download_request as download
 
 
+
 s3 = boto3.resource('s3')
 dynamodb = boto3.resource('dynamodb')
 
@@ -237,10 +238,10 @@ def mask_check(bucket_name,prefix_name):
             except:
                 type_column[x].append(np.nan)
 
-
     df = pd.DataFrame(type_column)
     df.insert(0,"ImgCollGUID",guid_list)
-    df.to_excel("/Users/ziweishi/Desktop/file_check.xlsx")
+    df.to_excel("../Documents/file_check.xlsx")
+    return df
 
 def os_file_check(path):
     guid_list = os.listdir(path)

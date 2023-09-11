@@ -1,10 +1,12 @@
+import os.path
+
 import pandas as pd
 import numpy as np
 from datetime import datetime
 
 
 def clean_training_track(check_date):
-    toyin = pd.read_excel("/Users/ziweishi/Desktop/WAUSI.xlsx",sheet_name="Training Dataset")
+    toyin = pd.read_excel("../Documents/WAUSI.xlsx",sheet_name="Training Dataset")
     df_toyin = pd.DataFrame()
     df_toyin["SubjectID"] = toyin["Subject ID"]
     df_toyin["status"] = toyin["Completed Study (or withdrawn/LTF)"]
@@ -90,16 +92,18 @@ def clean_training_track(check_date):
         sub_sta[i] = status_list[index]
         index+=1
 
+    folder = "../../DFU_regular_update/" + check_date
+    if os.path.isdir(folder) == False:
+        os.mkdir(folder)
 
-
-    path = "/Users/ziweishi/Documents/DFU_regular_update/"+check_date+"/toyin_tra_filtered.xlsx"
+    path = folder+"/toyin_tra_filtered.xlsx"
     df_toyin.to_excel(path)
     df_toyin.to_excel("../Documents/Castor_training.xlsx")
 
     return df_toyin,issue,sub_sta
 
 def clean_validation_track(check_date):
-    toyin = pd.read_excel("/Users/ziweishi/Desktop/WAUSI.xlsx",sheet_name="Validation Dataset")
+    toyin = pd.read_excel("../Documents/WAUSI.xlsx",sheet_name="Validation Dataset")
     df_toyin = pd.DataFrame()
     df_toyin["SubjectID"] = toyin["Subject ID"]
     df_toyin["status"] = toyin["Completed Study (or withdrawn/LTF)"]
@@ -177,12 +181,16 @@ def clean_validation_track(check_date):
         sub_sta[i] = status_list[index]
         index+=1
 
-    path = "/Users/ziweishi/Documents/DFU_regular_update/"+check_date+"/toyin_val_filtered.xlsx"
+
+    folder = "../../DFU_regular_update/"+check_date
+    if os.path.isdir(folder) == False:
+        os.mkdir(folder)
+
+    path = folder+"/toyin_val_filtered.xlsx"
     df_toyin.to_excel(path)
     df_toyin.to_excel("../Documents/Castor_validation.xlsx")
-
     return df_toyin,issue,sub_sta
 
 
 if __name__ == "__main__":
-    clean_validation_track("20230629")
+    clean_validation_track("20230911val")

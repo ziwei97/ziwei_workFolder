@@ -1,9 +1,7 @@
 import boto3
 import pandas as pd
 
-dynamodb = boto3.resource('dynamodb')
-table_name = 'DFU_Master_ImageCollections'  # 替换为你的 DynamoDB 表名
-table = dynamodb.Table(table_name)
+
 
 
 def update_guid(table,guid,attr,value):
@@ -25,7 +23,7 @@ def update_guid(table,guid,attr,value):
         print("fail")
 
 
-def add_phase(df):
+def add_phase(table,df):
 
     guid = df["ImgCollGUID"].to_list()
     status = df["Status"].to_list()
@@ -55,6 +53,10 @@ if __name__ == "__main__":
     # path = "/Users/ziweishi/Documents/DFU_regular_update/20230807val/20230807val_Guid_list.xlsx"
     # df = pd.read_excel(path)
     # add_phase(df)
+
+    dynamodb = boto3.resource('dynamodb')
+    table_name = 'DFU_Master_ImageCollections'  # 替换为你的 DynamoDB 表名
+    table = dynamodb.Table(table_name)
 
 
     df = pd.read_excel("/Users/ziweishi/Documents/DFU_regular_update/20230830tra_1/20230830tra_1_download_list.xlsx")

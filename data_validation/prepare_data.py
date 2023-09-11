@@ -3,10 +3,14 @@ import pandas as pd
 import os
 from  botocore.client import Config
 import boto3.s3.transfer as s3transfer
+import shutil
 import util.update_attr as update
+import check_data
+
 
 s3 = boto3.resource('s3')
 dynamodb = boto3.resource('dynamodb')
+
 
 
 def get_attribute(table, guid, attr):
@@ -77,7 +81,6 @@ def mask_prepare(df,attrs,prefix):
     )
     index = 0
     guid = df["ImgCollGUID"].to_list()
-
     s3t = s3transfer.create_transfer_manager(s3_client, transfer_config)
 
     for i in guid:
@@ -115,12 +118,18 @@ def mask_prepare(df,attrs,prefix):
     s3t.shutdown()
 
 
+
+
 # download to check image quality
-def mask_download(df,folder):
-    os.mkdir(folder)
-    guid = df["ImgCollGUID"].to_list()
-    assess = df["Assessing"].to_list()
-    pseudo = df["PseudoColor"].to_list()
+def mask_download(df_file_check,folder):
+    if os.path.isdir(folder) == True:
+        shutil.rmtree(folder)
+        os.mkdir(folder)
+    else:
+        os.mkdir(folder)
+    guid = df_file_check["ImgCollGUID"].to_list()
+    assess = df_file_check["Assessing"].to_list()
+    pseudo = df_file_check["PseudoColor"].to_list()
     s3_client = boto3.client("s3", config=Config(max_pool_connections=50))
     transfer_config = s3transfer.TransferConfig(
         use_threads=True,
@@ -135,7 +144,6 @@ def mask_download(df,folder):
         download_list = []
         download_list.append(assess_key)
         download_list.append(pseudo_key)
-
         guid_path = folder + i
         os.mkdir(guid_path)
         for j in download_list:
@@ -155,19 +163,83 @@ def mask_download(df,folder):
 
 
 
+def delete_archived(df,df_file):
+    df_archived = df[df["phase"]=="archived"]
+    ar_list = df_archived["ImgCollGUID"].to_list()
+    print(len(ar_list))
+    for i in ar_list:
+        file_path = df_file[df_file["ImgCollGUID"]==i]
+        try:
+            ass_file = file_path["Assessing"].iloc[0]
+            s3_object = s3.Object('spectralmd-datashare',ass_file)
+            s3_object.delete()
+        except:
+            print("no assessing")
+        try:
+            pseudo_file = file_path["PseudoColor"].iloc[0]
+            s3_object = s3.Object('spectralmd-datashare', pseudo_file)
+            s3_object.delete()
+        except:
+            print("no pseudo")
+
+
+def update_guid_phase(table,df,value):
+    guid = df["ImgCollGUID"].to_list()
+    phase = df["phase"].to_list()
+    index = 0
+    for i in guid:
+        p = phase[index]
+        if p == "archived":
+            update.update_guid(table,i,"phase","archived")
+        else:
+            update.update_guid(table, i, "phase", value)
+
+
+
+def prepare_flow(df,folder,attrs,prefix,bucket):
+    mask_prepare(df,attrs,prefix)
+    df_file = check_data.mask_check(bucket,prefix)
+    mask_download(df_file,folder)
+    return df_file
+
+
+
+
+def update_flow(df,df_file,table,value):
+    delete_archived(df,df_file)
+    update_guid_phase(table,df,value)
+
+
+
+
 if __name__ == "__main__":
     attrs=["PseudoColor","Assessing"]
     prefix="DataScience/WAUSI_Phase4_PseudoAssess_0830/"
-    # path = "/Users/ziweishi/Documents/DFU_regular_update/20230830tra_1/20230830tra_1_download_list.xlsx"
-    # df = pd.read_excel(path)
-    # # data_prepare(df,attrs,prefix)
-    # mask_prepare(df,attrs,prefix)
+    path = "../Documents/download_file/tra_download_list.xlsx"
 
-
-
-    path ="/Users/ziweishi/Desktop/file_check.xlsx"
     df = pd.read_excel(path)
-    mask_download(df,"/Users/ziweishi/Documents/check1/")
+    df = df[df["PseudoColor"].notna()]
+    bucket = "spectralmd-datashare"
+    # # data_prepare(df,attrs,prefix)
+    folder_path = "/Users/ziweishi/Documents/check"
+
+    table_name = 'DFU_Master_ImageCollections'
+    table = dynamodb.Table(table_name)
+
+
+
+    input = "have you already check archived images?"
+    if input == "yes" :
+        df_file_check = pd.read_excel("../Documents/file_check.xlsx")
+        phase_value = "t5"
+        update_flow(df,df_file_check,table,phase_value)
+    else:
+        prepare_flow(df, folder_path, attrs, prefix, bucket)
+
+
+
+
+
 
 
 
