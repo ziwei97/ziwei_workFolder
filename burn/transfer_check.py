@@ -8,9 +8,9 @@ from util import download_whole_dynamodb_table
 
 #refresh device database with the latest database sql file
 def refresh_sql_database(check_list):
-    local_site = ["nynw", "ocer", "whfa", "youngst", "lvrpool", "memdfu", "hilloh", "grovoh", "mentoh", "encinogho",
-                  "lahdfu"]
-    s3_site = ["rsci"]
+    local_site = ["nolaepoc", "wakeforest", "medstardc", "massgho", "unialab", "chnola", "medunisc", "chmedunisc", "yalebridgeport", "phxvw",
+                  "nysb","chphil"]
+    s3_site = []
     site_list = {}
     for i in check_list:
         site_list[i] = {}
@@ -20,7 +20,7 @@ def refresh_sql_database(check_list):
             site_list[i]["type"] = "s3"
         else:
             print("wrong site")
-    sql_info = sql_get.dfu_sql_find(site_list)
+    sql_info = sql_get.burn_sql_find(site_list)
     sql_path = sql_info[0]
     b = sql_info[1]
     for i in check_list:
@@ -99,10 +99,11 @@ def server_table_output(sql_path,site):
     og_file_path = check_path + site + "_" + date + "_collection_og.xlsx"
     df.to_excel(og_file_path)
 
-    if site != "memdfu":
+    if site == "memdfu":
         element_list = ["000", "99","8888","77"]
     else:
-        element_list = ["0000", "99","77"]
+        # element_list = ["0000", "99","77"]
+        element_list = []
 
 
     df = df[~df["MedicalNumber"].apply(lambda x: has_element(x, element_list))]
@@ -144,13 +145,13 @@ def server_table_output(sql_path,site):
             lambda x: x.replace("211-001", "211-01") if "211-001" in x else x)
         df["MedicalNumber"] = df["MedicalNumber"].apply(
             lambda x: x.replace("211-0", "211-00") if "211-0" in x else x)
-    if site == "rsci":
+    if site == "phxvw":
         df["MedicalNumber"] = df["MedicalNumber"].apply(
-            lambda x: "292-" + x if "292-" not in x else x)
+            lambda x: "109" + x if "109" not in x else x)
+        df["MedicalNumber"] = df["MedicalNumber"].apply(
+            lambda x: x.replace("109-", "109") if "109" in x else x)
 
-    if site == "rsci":
-        df["MedicalNumber"] = df["MedicalNumber"].apply(
-            lambda x: "292-" + x if "292-" not in x else x)
+
 
     guid_file_path = check_path+site+"_"+date+"_collection.xlsx"
     df.to_excel(guid_file_path, index=False)
@@ -338,15 +339,15 @@ def image_check(db,df,df2,site,check_path):
 
 if __name__ =="__main__":
     # local_site = ["nynw", "ocer", "whfa", "youngst", "lvrpool", "memdfu", "hilloh", "grovoh", "mentoh", "encinogho","lahdfu","rsci"]
-    check_site = [ "mentoh"]
+    check_site = [ "phxvw"]
     check_list = {}
 
     site_list = refresh_sql_database(check_site)
     for check in check_site:
         check_list[check] = site_list[check]
 
-    db = download_whole_dynamodb_table.download_table("DFU_Master_ImageCollections")
-    db = db[db["StudyName"] == "DFU_SSP"]
+    db = download_whole_dynamodb_table.download_table("BURN_Master_ImageCollections")
+    db = db[db["StudyName"] == "BURN_BTS"]
 
     data_sites = []
     for i in check_list.keys():
@@ -356,7 +357,7 @@ if __name__ =="__main__":
         data_sites.append(df_guid)
 
     union_df = pd.concat(data_sites)
-    union_df.to_excel("/Users/ziweishi/Desktop/dfu_site_check.xlsx")
+    union_df.to_excel("/Users/ziweishi/Desktop/burn_site_check.xlsx")
 
 
 

@@ -15,8 +15,10 @@ def dfu_sql_find(site_list):
     cur_list = os.listdir(sql_path)
     cur_info_list = {}
 
-    if len(cur_list)>0 and ".DS_Store" not in cur_list:
-        cur_list = [x for x in cur_list if ".DS_Store" not in cur_list]
+    if len(cur_list) > 0:
+        cur_list = [x for x in cur_list]
+        if ".DS_Store" in cur_list:
+            cur_list.remove(".DS_Store")
         for sql in cur_list:
             info = sql.split("_")
             site = info[0]
@@ -86,7 +88,11 @@ def dfu_sql_find(site_list):
         smb_connection.close()
         return info_list,z
     else:
-        return cur_info_list,z
+        info_list = {}
+        for i in site_list:
+            info_list[i] = cur_info_list[i]
+
+        return info_list, z
 
 
 if __name__ == "__main__":

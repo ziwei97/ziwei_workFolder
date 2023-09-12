@@ -3,7 +3,7 @@ import os
 import socket
 from datetime import datetime
 import boto3
-import shutil
+
 
 s3 = boto3.resource('s3')
 dynamodb = boto3.resource('dynamodb')
@@ -14,13 +14,16 @@ def burn_sql_find(site_list):
     # path = "/Users/ziweishi/Documents/transfer_regular_check/0_sql_file/"
     cur_list = os.listdir(sql_path)
     cur_info_list = {}
-
-    if len(cur_list)>0 and ".DS_Store" not in cur_list:
-        cur_list = [x for x in cur_list if ".DS_Store" not in cur_list]
+    if len(cur_list)>0:
+        cur_list = [x for x in cur_list]
+        if ".DS_Store"  in cur_list:
+            cur_list.remove(".DS_Store")
         for sql in cur_list:
             info = sql.split("_")
             site = info[0]
             cur_info_list[site] = sql_path + sql
+
+
 
     z = input("get latest sql file for each site?")
 
@@ -39,7 +42,7 @@ def burn_sql_find(site_list):
                 # shutil.rmtree(path)
                 os.mkdir(path)
             if site_list[site]["type"] == "local":
-                try:
+                # try:
                     shared_folder_name = 'epoc'
                     site_sql_fold = "/DataTransfers/" + site + "/"
                     file_list = smb_connection.listPath(shared_folder_name, site_sql_fold)
@@ -71,16 +74,13 @@ def burn_sql_find(site_list):
                                 tag = date_time
                             else:
                                 max_time = max_time
-                    max_sql_fold = site_sql_fold + max_file + "/SpectralView/dvsspdata.sql"
-                    print(max_sql_fold)
-
+                    max_sql_fold = site_sql_fold + max_file + "/SpectralView/deepviewdata.sql"
                     local_path = path+ site + "_" + tag + "_dvsspdata.sql"
-                    print(local_path)
                     with open(local_path, 'wb') as local_file:
                         smb_connection.retrieveFile(shared_folder_name, max_sql_fold, local_file)
                     info_list[site] = local_path
-                except:
-                    info_list[site] = "none"
+                # except:
+                #     info_list[site] = "none"
             else:
                 s3_path = "DataTransfer/WAUSI_Connolly_Hospital_Ireland/CONNOLLY_DFU_SMD2211-004_08_02_23/SpectralView/dvsspdata.sql"
                 tag = "temp2"
@@ -90,7 +90,12 @@ def burn_sql_find(site_list):
         smb_connection.close()
         return info_list,z
     else:
-        return cur_info_list,z
+        info_list ={}
+        for i in site_list:
+            info_list[i] = cur_info_list[i]
+
+
+        return info_list,z
 
 
 if __name__ == "__main__":
