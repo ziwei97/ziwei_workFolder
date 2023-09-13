@@ -102,8 +102,8 @@ def server_table_output(sql_path,site):
     if site == "memdfu":
         element_list = ["000", "99","8888","77"]
     else:
-        # element_list = ["0000", "99","77"]
-        element_list = []
+        element_list = ["0000", "99","77"]
+        # element_list = []
 
 
     df = df[~df["MedicalNumber"].apply(lambda x: has_element(x, element_list))]
@@ -149,7 +149,7 @@ def server_table_output(sql_path,site):
         df["MedicalNumber"] = df["MedicalNumber"].apply(
             lambda x: "109" + x if "109" not in x else x)
         df["MedicalNumber"] = df["MedicalNumber"].apply(
-            lambda x: x.replace("109-", "109") if "109" in x else x)
+            lambda x: x.replace("109", "109-") if "109" in x else x)
 
 
 
