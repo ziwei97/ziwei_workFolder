@@ -35,8 +35,11 @@ def refresh_sql_database(check_list):
             )
             cursor = connection.cursor()
             # 打开SQL文件并执行其中的SQL语句
+
+
             with open(sql_path[i], 'r') as sql_file:
                 sql_statements = sql_file.read().split(';')
+
                 for statement in sql_statements:
                     if statement.strip():
                         cursor.execute(statement)
@@ -44,6 +47,7 @@ def refresh_sql_database(check_list):
             connection.commit()
             cursor.close()
             connection.close()
+
     return site_list
 
 
@@ -74,15 +78,18 @@ def server_table_output(sql_path,site):
     )
     cursor = connection.cursor()
 
+
     query1 = "select * from imagescollection left join injury on imagescollection.INJURYID = injury.INJURYID left join patient on injury.PID = patient.PID"
     cursor.execute(query1)
     collection_result = cursor.fetchall()
     df = pd.DataFrame(collection_result)
+
     df["CaptureDate"]=df["CreateDateTime"].apply(lambda x: str(x))
 
 
     query2 = "select * from imagescollection left join images on imagescollection.IMCOLLID=images.IMCOLLID"
     cursor.execute(query2)
+
     image_result = cursor.fetchall()
     df2 = pd.DataFrame(image_result)
     print(sql_path)
@@ -276,8 +283,20 @@ def image_check(db,df,df2,site,check_path):
                     db_assessing1 = db_assessing1.replace("'", "")
                     db_assessing2 = db_assessing1.strip("{}").split(",")
 
-                    if len(assessing_list) != len(db_assessing2):
-                        comment["Assessing Issue"] = "wrong assessing"
+                    check = False
+                    for z in db_assessing2:
+                        if i in z:
+                            check = True
+                            break
+                        else:
+                            check = check
+                            print(db_assessing2)
+
+
+                    if len(assessing_list) != len(db_assessing2) and check == True :
+                        comment["Assessing Issue"] = "multi assess"
+                    elif len(assessing_list) != len(db_assessing2) and check == False:
+                        comment["Assessing Issue"] = "wrong assess risk"
                     else:
                         comment["Assessing Issue"] = np.nan
                 except:
@@ -338,7 +357,7 @@ def image_check(db,df,df2,site,check_path):
 
 if __name__ =="__main__":
     # local_site = ["nynw", "ocer", "whfa", "youngst", "lvrpool", "memdfu", "hilloh", "grovoh", "mentoh", "encinogho","lahdfu","rsci"]
-    check_site = [ "mentoh"]
+    check_site = [ "rsci"]
     check_list = {}
 
     site_list = refresh_sql_database(check_site)

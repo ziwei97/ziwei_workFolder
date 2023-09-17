@@ -27,6 +27,7 @@ def dfu_sql_find(site_list):
     z = input("get latest sql file for each site?")
 
     if z =="yes":
+        shutil.rmtree(sql_path)
         my_name = socket.gethostname()
         remote_name = 'smd-fs.SpectralMD.com.'
         smb_connection = SMBConnection('zshi', "2ntjhy1V1Jrk", my_name, remote_name, use_ntlm_v2=True,
@@ -77,15 +78,17 @@ def dfu_sql_find(site_list):
                     with open(local_path, 'wb') as local_file:
                         smb_connection.retrieveFile(shared_folder_name, max_sql_fold, local_file)
                     info_list[site] = local_path
+                    print(local_path)
                 except:
                     info_list[site] = "none"
             else:
-                s3_path = "DataTransfer/WAUSI_Connolly_Hospital_Ireland/CONNOLLY_DFU_SMD2211-004_08_02_23/SpectralView/dvsspdata.sql"
-                tag = "temp2"
+                s3_path = "DataTransfer/WAUSI_Connolly_Hospital_Ireland/CONNOLLY_DFU_SMD2211-004_12_09_23/SpectralView/dvsspdata_revise.sql"
+                tag = "temp3"
                 local_path = path+ site + "_" + tag + "_dvsspdata.sql"
                 s3.Bucket("spectralmd-uk").download_file(s3_path, local_path)
                 info_list[site] = local_path
         smb_connection.close()
+        print("q1")
         return info_list,z
     else:
         info_list = {}

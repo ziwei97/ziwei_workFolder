@@ -4,9 +4,11 @@ import boto3
 import numpy as np
 import pandas as pd
 import data_validation.test_copy as ts_copy
-import util.update_attr as update
+import util.download_request as download_request
+import util.download_whole_dynamodb_table as download_table
 
 s3 = boto3.resource('s3')
+dynamodb = boto3.resource('dynamodb')
 
 
 # key = "DataScience/WAUSI_SV0_0522/205-002/SV_1_Date/"
@@ -32,94 +34,47 @@ s3 = boto3.resource('s3')
 # type_list = {i:[] for i in structure}
 #
 # print(type_list)
+table_name = 'BURN_Master_ImageCollections'
+table = dynamodb.Table(table_name)
 
-df = pd.read_excel("/Users/ziweishi/Documents/DFU_regular_update/20230830training/20230830training_Guid_list.xlsx")
-sub_list = df["SubjectID"].to_list()
-vis_list = df["VisitTime"].to_list()
-
-draw_df = df[df["phase"].notna()]
-draw_df = draw_df[draw_df["phase"]!="archived"]
-draw_sub = draw_df["SubjectID"].to_list()
-draw = {}
-for i in draw_sub:
-    if i not in draw:
-        draw[i] =1
-    else:
-        draw[i]+=1
-
-archive_df = df[df["phase"]=="archived"]
-archive_sub = archive_df["SubjectID"].to_list()
-archive = {}
-for i in archive_sub:
-    if i not in archive:
-        archive[i] =1
-    else:
-        archive[i]+=1
+df = pd.read_excel("/Users/ziweishi/Downloads/bts_all_phase_info.xlsx")
 
 
-info ={}
-num = {}
 
+db = pd.read_excel("/Users/ziweishi/Documents/ziwei_project/Documents/Database/BURN_Master_ImageCollections.xlsx")
+
+
+
+guid = df["ImgCollGUID"].to_list()
+subject = df["SubjectID"].to_list()
+wound_list = df["Wound"].to_list()
+id_list = df["ImageCollectionID"].to_list()
+capture_time = df["CaptureDate"].to_list()
+
+ImageCollTime = []
+jsonfile = []
 index = 0
-for i in sub_list:
-    if i not in num:
-        num[i] =1
-    else:
-        num[i]+=1
 
-    vis = vis_list[index]
-    if i not in info:
-        info[i] = []
-        info[i].append(vis)
-    else:
-        if vis not in info[i]:
-            info[i].append(vis)
-        else:
-            info[i] = info[i]
+insert_position1 = df.columns.get_loc('CaptureDate') - 1
+insert_position2 = df.columns.get_loc('CaptureDate')
+for i in guid:
+    # b = download_request.get_attribute(table,i,"Bucket")
+    b = db[db["ImgCollGUID"]==i]
+
+    bucket = b["Bucket"].iloc[0]
+    sub = subject[index]
+    id = id_list[index]
+    wound = wound_list[index]
+    json = sub+"_"+str(wound)+"_"+bucket+"_SS_"+str(id)+".json"
+    jsonfile.append(json)
+
+    cap = str(capture_time[index]).split(" ")
+    time = cap[1].replace(":",".")
+    cap_time = cap[0]+"_"+time+".000"
+    ImageCollTime.append(cap_time)
     index+=1
+    print(index)
 
-
-subject = info.keys()
-
-time = ["Match","Draw","Archive"]
-
-for i in range(1,13):
-    p = "SV_" +str(i)+'_Date'
-    time.append(p)
-
-
-time = time.append("Visit_Total")
-
-df_info = pd.DataFrame(columns=time)
-
-for i in subject:
-    vis_info = info[i]
-    vis_total = len(info[i])
-    for j in vis_info:
-        df_info.loc[i,j] = 1
-
-    df_info.loc[i,"Visit_Total"] = vis_total
-    try:
-        df_info.loc[i, "Match"] = num[i]
-    except:
-        df_info.loc[i, "Match"] = np.NAN
-
-    try:
-        df_info.loc[i,"Drawn"] = draw[i]
-    except:
-        df_info.loc[i,"Drawn"] = 0
-
-    try:
-        df_info.loc[i,"Archive"] = archive[i]
-    except:
-        df_info.loc[i,"Archive"] = 0
-
-
-
-df_info.to_excel("/Users/ziweishi/Documents/vis.xlsx")
-
-
-
-
-
-
+df.insert(insert_position1,"jsonFile",jsonfile)
+df.insert(insert_position2,"ImageCollTime",ImageCollTime)
+df.to_csv("/Users/ziweishi/Downloads/bts_all_phase_info.csv")

@@ -126,7 +126,9 @@ def copy_image(df):
     index = 0
 
     pseudo_list = []
-    msi_list = []
+    raw_list = []
+
+
 
     for i in source_list:
         local_path = local_list[index]
@@ -137,34 +139,119 @@ def copy_image(df):
         p_filter_keywords = ["PseudoColor"]
         p_file_names = [file.filename for file in file_list if any(keyword in file.filename for keyword in p_filter_keywords)]
 
-        m_filter_keywords = ["Post_MSI"]
-        m_file_names = [file.filename for file in file_list if
-                      any(keyword in file.filename for keyword in m_filter_keywords)]
+        r_filter_keywords = []
+        r_file_names = [file.filename for file in file_list if
+                      any(keyword in file.filename for keyword in r_filter_keywords)]
 
 
-        file_names = p_file_names+m_file_names
+        file_names = p_file_names+r_file_names
 
 
-        pseudo_list.append(p_file_names)
-        msi_list.append(m_file_names)
+
+        raw_list.append(r_file_names)
+
+        pseudo_guid = []
 
         for j in file_names:
             file_path = i+"/"+j
-            local_file_folder = local_path+"/"
+            local_file_folder = "../../../Desktop/DHA/truthing_images/"+ guid+"/"
             if os.path.isdir(local_file_folder) == False:
                 os.makedirs(local_file_folder)
-            local_file_path = local_file_folder+ j
+
+            j_list = j.split("_")
+            j = j_list[1]+"_"+guid+"_"+j_list[2]+".tif"
+            local_file_path = local_file_folder+j
+
+            pseudo_guid.append(j)
+
+            # with open(local_file_path, 'wb') as download_path:
+            #     smb_connection.retrieveFile(shared_folder_name, file_path, download_path)
+        index+=1
+        print(index)
+
+        pseudo_list.append(pseudo_guid)
+
+
+
+    df["PseudoColor_List"] = pseudo_list
+    # df["RAW_List"] = raw_list
+
+    col = ["IMCOLLID","ImgCollGUID","WOUNDID","ImageCollFolderName","MedicalNumber","source_path","PseudoColor_List"]
+    df = df[col]
+    df.to_excel("../../../Desktop/DHA/truthing_images/file_path.xlsx")
+
+
+
+def truth_image(df):
+    my_name = socket.gethostname()
+    remote_name = 'smd-fs.SpectralMD.com.'
+    smb_connection = SMBConnection('zshi', "2ntjhy1V1Jrk", my_name, remote_name, use_ntlm_v2=True,
+                                       is_direct_tcp=True)
+    smb_connection.connect("192.168.110.252", 445)
+    shared_folder_name = 'Handheld'
+    local_folder = "/Users/ziweishi/Downloads/DHA_Truthing"
+    df = df[df["MedicalNumber"]!="101-004"]
+    source_list = df["source_path"].to_list()
+    guid_list = df["ImgCollGUID"].to_list()
+    sub_list = df["MedicalNumber"].to_list()
+    wound_list = df["AnatomicalLocation"].to_list()
+    index = 0
+
+    pseudo_list = []
+
+    for i in source_list:
+        local_patient = local_folder+"/"+sub_list[index]
+        wound_suffix = wound_list[index]
+        wound_info = wound_suffix.split("_")
+        wound = wound_info[0]
+        suffix = wound_info[1]
+        local_wound = os.listdir(local_patient)
+        wound_path = ""
+        f_wound = ""
+        for w in local_wound:
+            if len(w.split("_"))==3:
+                if wound in w and suffix in w:
+                    wound_path = local_patient + "/" + w
+                    f_wound = w
+            elif wound in w:
+                wound_path = local_patient+"/"+w
+                f_wound =w
+
+        print(wound_suffix+" + "+f_wound)
+        print(local_wound)
+
+
+        guid = guid_list[index]
+        # print(guid)
+
+        file_list = smb_connection.listPath(shared_folder_name, i)
+
+        p_filter_keywords = ["PseudoColor"]
+        p_file_names = [file.filename for file in file_list if any(keyword in file.filename for keyword in p_filter_keywords)]
+
+        file_names = p_file_names
+
+        pseudo_guid = []
+
+        for j in file_names:
+            file_path = i+"/"+j
+            local_file_folder = wound_path+"/"+guid+"/"
+            if os.path.isdir(local_file_folder) == False:
+                os.makedirs(local_file_folder)
+
+            j_list = j.split("_")
+            j = j_list[1]+"_"+guid+"_"+j_list[2]+".tif"
+            local_file_path = local_file_folder+j
+
+            pseudo_guid.append(j)
             with open(local_file_path, 'wb') as download_path:
                 smb_connection.retrieveFile(shared_folder_name, file_path, download_path)
         index+=1
         print(index)
 
-    df["PseudoColor_List"] = pseudo_list
-    df["MSI_List"] = msi_list
+        pseudo_list.append(pseudo_guid)
 
-    col = ["IMCOLLID","ImgCollGUID","WOUNDID","ImageCollFolderName","MedicalNumber","source_path","local_path","PseudoColor_List","MSI_List"]
-    df = df[col]
-    df.to_excel("../../../Desktop/DHA/truthing_images/file_path.xlsx")
+
 
 
 
@@ -182,4 +269,5 @@ if __name__ == "__main__":
     # output_collection("0814")
 
     df = pd.read_excel("/Users/ziweishi/Desktop/DHA/latest_dha.xlsx")
-    copy_image(df)
+    # copy_image(df)
+    truth_image(df)

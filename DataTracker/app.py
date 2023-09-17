@@ -8,11 +8,16 @@ app = Flask(__name__)
 app.config.from_object(Config)
 
 db = pymysql.connect(
-    host=app.config['MYSQL_HOST'],
-    user=app.config['MYSQL_USER'],
-    password=app.config['MYSQL_PASSWORD'],
-    database=app.config['MYSQL_DB'],
-    cursorclass=pymysql.cursors.DictCursor
+    host='127.0.0.1',
+        user='root',
+        password='szw970727',
+        database="dha",
+        cursorclass=pymysql.cursors.DictCursor
+    # host=app.config['localhost'],
+    # user=app.config['root'],
+    # password=app.config['szw970727'],
+    # database=app.config['dha'],
+    # cursorclass=pymysql.cursors.DictCursor
 )
 cursor = db.cursor()
 
@@ -47,7 +52,7 @@ def site_detail():
     cursor.execute(query2)
     collection_result2 = cursor.fetchall()
     df2 = pd.DataFrame(collection_result2)
-    df2.to_excel("/Users/ziweishi/Desktop/dha.xlsx")
+    # df2.to_excel("/Users/ziweishi/Desktop/dha.xlsx")
     data2 = df2.reset_index(drop=True)
     tables = [data1,data2]
     table_forms = [table.to_html(
@@ -68,4 +73,4 @@ def site_detailq():
         classes='table custom-style',index=False,border=2))
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000, debug=True)
+    app.run(host='0.0.0.0', port=3306, debug=True)

@@ -25,7 +25,7 @@ def get_attribute(table, guid, attr):
 # general data prepare, revise data_structure first
 def data_prepare(df,attrs,prefix):
     s3_client = boto3.client("s3", config=Config(max_pool_connections=50))
-    table_name = 'BURN_Master_ImageCollections'
+    table_name = 'DFU_Master_ImageCollections'
     table = dynamodb.Table(table_name)
     transfer_config = s3transfer.TransferConfig(
         use_threads=True,
@@ -57,12 +57,63 @@ def data_prepare(df,attrs,prefix):
                             'Key': a_source
                         }
                         a = a.split("/")[-1]
-                        a_source_pseduo = prefix+subject+"/"+i+"/"  + a
+                        a_source_pseduo = prefix+i+"/"  + a
                         dest_source = {
                             'Bucket': 'spectralmd-datashare',
                             'Key': a_source_pseduo
                         }
                         s3t.copy(copy_source=copy_source, bucket=dest_source["Bucket"], key=dest_source["Key"])
+                except:
+                    print(i+" no "+j)
+    except Exception as err:
+        issue.append(err)
+    finally:
+        s3t.shutdown()
+
+
+
+def data_prepare_simple(guid,attrs,local):
+    if os.path.isdir(local) == True:
+        shutil.rmtree(local)
+        os.mkdir(local)
+    else:
+        os.mkdir(local)
+    s3_client = boto3.client("s3", config=Config(max_pool_connections=50))
+    table_name = 'DFU_Master_ImageCollections'
+    table = dynamodb.Table(table_name)
+    transfer_config = s3transfer.TransferConfig(
+        use_threads=True,
+        max_concurrency=20,
+    )
+    s3t = s3transfer.create_transfer_manager(s3_client, transfer_config)
+    index = 0
+    issue = []
+    try:
+        for i in guid:
+            print(index)
+            print(guid)
+            bucket = get_attribute(table, i, "Bucket")
+            index += 1
+            for j in attrs:
+                try:
+                    label = get_attribute(table, i, j)
+                    for a in label:
+                        a_source = a
+                        copy_source = {
+                            'Bucket': bucket,
+                            'Key': a_source
+                        }
+                        a1 = a.split("/")[-1]
+                        a_source_pseduo = prefix+i+"/"  + a
+                        dest_source = {
+                            'Bucket': 'spectralmd-datashare',
+                            'Key': a_source_pseduo
+                        }
+                        # s3t.copy(copy_source=copy_source, bucket=dest_source["Bucket"], key=dest_source["Key"])
+
+                        local_path = local + a1
+                        print(local_path)
+                        s3t.download(bucket, a,local_path)
                 except:
                     print(i+" no "+j)
     except Exception as err:
@@ -212,35 +263,33 @@ if __name__ == "__main__":
     table = dynamodb.Table(table_name)
     folder_path = "/Users/ziweishi/Documents/check/"
     bucket = "spectralmd-datashare"
-    attrs=["PseudoColor","Assessing"]
+    attrs=["PseudoColor","Raw"]
+    prefix="DataScience/DFU_Measurement_test/"
+
+    df = pd.read_excel("/Users/ziweishi/Desktop/3D_Measurement_test_Sample.xlsx")
+
+    # print(len(df))
+    # data_prepare(df,attrs,prefix)
 
 
-    prefix="DataScience/WAUSI_validation_Phase3_PseudoAssess_0911/"
-
-    # path = dfu_Match.training_time_table_transfer("20230911tra")
-    # path ="../Documents/download_file/tra_download_list.xlsx"
-    path ="../Documents/download_file/val_download_list.xlsx"
-
-    df = pd.read_excel(path)
-    df = df[df["PseudoColor"].notna()]
-
-    mask_prepare(df,attrs,prefix)
+    # check_data.file_num_check(bucket,prefix)
 
 
-    check_data.mask_check(bucket,prefix)
 
 
-    file_check_path = "../Documents/file_check.xlsx"
-    df_file = pd.read_excel(file_check_path)
-    mask_download(df_file,folder_path)
 
 
-    print("aws s3 cp s3://spectralmd-datashare/"+prefix+ " /Users/ziweishi/Documents/check  --recursive")
-    print("aws s3 cp s3://spectralmd-datashare/"+prefix+ " /your/target  --recursive")
 
-    # revise_path = "../../DFU_regular_update/20230911val/20230911val_download_list.xlsx"
-    # delete_archived(df, df_file)
-    # update_guid_phase(table, df, "t5")
+
+
+
+
+
+
+
+    print("aws s3 cp s3://spectralmd-datashare/"+prefix+ " /Users/ziweishi/Documents/DFU_Measurement_test/  --recursive")
+    # print("aws s3 cp s3://spectralmd-datashare/"+prefix+ " /your/target  --recursive")
+
 
 
 

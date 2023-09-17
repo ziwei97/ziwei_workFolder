@@ -312,7 +312,7 @@ def training_time_table_transfer(update_date):
     return list_download_path
 
 def validation_time_table_transfer(update_date):
-    og_path = "../../Documents/DFU_regular_update/"
+    og_path = "../../DFU_regular_update/"
     path = os.path.join(og_path, update_date)
     if os.path.isdir(path) == False:
         os.mkdir(path)
@@ -393,7 +393,7 @@ def validation_time_table_transfer(update_date):
     data = zip(sub_cri, guid_list)
     df = pd.DataFrame(data=data, columns=["sub_time", "guid"])
     df1 = df.groupby('sub_time', group_keys=False)['guid'].apply(list).reset_index(name='new')
-    df1.to_excel("/Users/ziweishi/Downloads/check1.xlsx")
+
 
     list_sub = matched_timetable["SubjectID"].to_list()
     list_time1 = matched_timetable["Match_Date"].to_list()
@@ -556,6 +556,6 @@ def validation_time_table_transfer(update_date):
 
 if __name__ == "__main__":
     # a = input("Do you use the latest WAUSI Enrollment tracker file?")
-    # training_time_table_transfer("20230911tra")
-    validation_time_table_transfer("20230911val")
+    # training_time_table_transfer("20230915tra")
+    validation_time_table_transfer("20230915val")
 
