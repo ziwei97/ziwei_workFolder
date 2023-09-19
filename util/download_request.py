@@ -10,7 +10,13 @@ import shutil
 s3 = boto3.resource('s3')
 dynamodb = boto3.resource('dynamodb')
 
-
+def parse_date(x):
+    try:
+        stamp = int(x) - 2209031999999999700 - 6*60*60*1000000000
+        eval = str(pd.to_datetime(stamp).strftime('%d-%m-%Y'))
+    except:
+        eval = np.nan
+    return eval
 
 #get attributes from dynamodb
 def get_attribute(table,guid,attr):
@@ -127,27 +133,33 @@ if __name__ == "__main__":
     # df = df[df["SubjectID"].isin(sub_name)]
     # raw_list = df["ImgCollGUID"].to_list()
 
-    attrs=["PseudoColor"]
+    attrs=["DeviceID"]
 
-    cor = """9d34e35b-ed2c-400f-b18e-3612be959cf0
-24e932b6-c577-452f-aeb6-68cf6cda782e
-12dfa884-ce66-437f-b5cb-93981e180277
-6766ee4a-1ed9-4112-8698-4aef5fe73837
-781c98ec-98b5-48de-a542-68c0d73d45fa
-d8efacb9-6a23-48c6-bf65-ad47beaa3322
-8b114edc-c4a2-4ab6-9ab0-c2aa05258b92
-8abe3dfe-4d43-42f3-944b-34669667ab26
-ec55138e-2ad7-4cb6-a087-a7b577201c9b
-4d94ddea-72d4-422b-886e-fa8d922a3aa1
-88754652-8d9f-4e81-9701-9cdeb472fe2b"""
+    cor = """3d0ad712-6e9c-494e-be71-9371ad0ec895
+828cf35c-d83d-483c-b6a5-e2034c6e532e
+a5683eb8-7998-4b31-afe2-754660ef54d1
+495e2767-7e4c-465e-aa14-ee2831dcae2d
+15eb17da-561a-4414-91a8-580b172739b1
+6d76832a-ed2d-4bcd-868d-bf82f4f51733
+6eb1b0b2-23e2-4359-bdbc-e6c1292e32bf
+1647e48b-de74-4b48-b2bb-b79f1ac88d41
+1666955f-0156-4785-bc72-f0ae036a2964
+4e9fb446-7a4c-41b7-9185-3f14f832ce59
+5659c7cb-81c8-475d-b772-bcc7031e0a8b
+23b0a82e-d35b-4c96-a343-8c9b2732a25c"""
 
     path = "/Users/ziweishi/Documents/check/"
 
     raw_list = cor.split("\n")
     table_name = 'DFU_Master_ImageCollections'
     table = dynamodb.Table(table_name)
+    #
+    # download_raw(table,raw_list,attrs,path)
 
-    download_raw(table,raw_list,attrs,path)
+    for i in raw_list:
+        a = get_attribute(table,i,"CreateTimeStamp")
+        print("'"+str(parse_date(a))+"'")
+
 
 
 

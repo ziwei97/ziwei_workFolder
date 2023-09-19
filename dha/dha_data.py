@@ -1,4 +1,5 @@
 import os.path
+import shutil
 import pymysql
 import pandas as pd
 import numpy as np
@@ -13,8 +14,7 @@ def has_element(value,element_list):
     return False
 
 
-def output_collection(date):
-    sql_path = "/Users/ziweishi/Downloads/deepviewdata.sql"
+def output_collection(sql_path):
 
     connection = pymysql.connect(
         host='127.0.0.1',
@@ -41,23 +41,13 @@ def output_collection(date):
     path = "../../../Desktop/DHA/latest_dha.xlsx"
 
     filter = ["555", "7890", "99"]
-    # filter = []
 
     df = df[~df["MedicalNumber"].apply(lambda x: has_element(x, filter))]
 
     df["source_path"] = df["ImageCollFolderName"].apply(lambda x: x.replace("D:\\ImagingApp\\", "/DHA/NOLABURN/Clean_Truth_Event_NOLA_20230727/"))
     df["source_path"] = df["source_path"].apply(lambda x: x.replace("\\", "/"))
-    # df["SubjectID"] = df["MedicalNumber"]
-    #
-    # df["patient_folder"] = df["ImageCollFolderName"].apply(
-    #     lambda x: (x.split("\\"))[2])
-    #
-    # df["s3_path"] = df["ImageCollFolderName"].apply(lambda x: x.replace("D:\\","DataTransfers/Nola_Burn_Unit/SMD_101_001/"))
-    #
-    # col = ['ImgCollGUID', 'ImageCollFolderName', 'CreateDateTime', 'AnatomicalLocation', 'SubjectID',
-    #        'patient_folder',"s3_path"]
 
-    # df = df[col]
+
 
     df["local_path"] = df["ImageCollFolderName"].apply(lambda x: x.replace("D:\\ImagingApp\\", "../../../Desktop/DHA/truthing_images/"))
     df["local_path"] = df["local_path"].apply(lambda x: x.replace("\\", "/"))
@@ -72,10 +62,7 @@ def output_collection(date):
 
 def download_pseudo(date):
     a = input("new transfer database?")
-    if a != "yes":
-        df = pd.read_excel("/Users/ziweishi/Desktop/DHA/new_dha.xlsx")
-    else:
-        df = output_collection(date)
+    df = output_collection(date)
     folder_path = "/Users/ziweishi/Desktop/DHA/" + date + "/"
     if os.path.isdir(folder_path) == False:
         os.mkdir(folder_path)
@@ -176,9 +163,8 @@ def copy_image(df):
     df["PseudoColor_List"] = pseudo_list
     # df["RAW_List"] = raw_list
 
-    col = ["IMCOLLID","ImgCollGUID","WOUNDID","ImageCollFolderName","MedicalNumber","source_path","PseudoColor_List"]
-    df = df[col]
-    df.to_excel("../../../Desktop/DHA/truthing_images/file_path.xlsx")
+    # col = ["IMCOLLID","ImgCollGUID","WOUNDID","ImageCollFolderName","MedicalNumber","source_path","PseudoColor_List"]
+
 
 
 
@@ -190,34 +176,52 @@ def truth_image(df):
     smb_connection.connect("192.168.110.252", 445)
     shared_folder_name = 'Handheld'
     local_folder = "/Users/ziweishi/Downloads/DHA_Truthing"
+
+    download_folder = "/Users/ziweishi/Downloads/PatientData/NOLA"
     df = df[df["MedicalNumber"]!="101-004"]
     source_list = df["source_path"].to_list()
     guid_list = df["ImgCollGUID"].to_list()
     sub_list = df["MedicalNumber"].to_list()
-    wound_list = df["AnatomicalLocation"].to_list()
+    wound_list = df["fix"].to_list()
     index = 0
 
     pseudo_list = []
+    bme_wound = []
+    castor_wound = []
 
     for i in source_list:
         local_patient = local_folder+"/"+sub_list[index]
+        download_patient = download_folder+"/"+sub_list[index]
         wound_suffix = wound_list[index]
-        wound_info = wound_suffix.split("_")
-        wound = wound_info[0]
-        suffix = wound_info[1]
+        if "_" in wound_suffix:
+            wound_info = wound_suffix.split("_")
+            wound = wound_info[0]
+            suffix = wound_info[1]
+        else:
+            wound = wound_suffix
+            suffix = np.nan
+
         local_wound = os.listdir(local_patient)
         wound_path = ""
         f_wound = ""
         for w in local_wound:
-            if len(w.split("_"))==3:
-                if wound in w and suffix in w:
-                    wound_path = local_patient + "/" + w
+            w_list = w.split("_")
+            if len(w_list) == 2:
+                if wound in w:
+                    wound_path = download_patient + "/" + w
                     f_wound = w
-            elif wound in w:
-                wound_path = local_patient+"/"+w
-                f_wound =w
+            else:
+                if wound in w and suffix in w:
+                    wound_path = download_patient + "/" + w
+                    f_wound = w
 
-        print(wound_suffix+" + "+f_wound)
+
+
+        castor_wound.append(f_wound)
+        local_wound1 = [x for x in local_wound if ".DS" not in x]
+        bme_wound.append(local_wound1)
+
+        print(wound+" + "+f_wound)
         print(local_wound)
 
 
@@ -226,10 +230,12 @@ def truth_image(df):
 
         file_list = smb_connection.listPath(shared_folder_name, i)
 
-        p_filter_keywords = ["PseudoColor"]
+        p_filter_keywords = ["webcam"]
         p_file_names = [file.filename for file in file_list if any(keyword in file.filename for keyword in p_filter_keywords)]
 
         file_names = p_file_names
+
+
 
         pseudo_guid = []
 
@@ -239,10 +245,9 @@ def truth_image(df):
             if os.path.isdir(local_file_folder) == False:
                 os.makedirs(local_file_folder)
 
-            j_list = j.split("_")
-            j = j_list[1]+"_"+guid+"_"+j_list[2]+".tif"
+            # j_list = j.split("_")
+            # j = j_list[1]+"_"+guid+"_"+j_list[2]+".tif"
             local_file_path = local_file_folder+j
-
             pseudo_guid.append(j)
             with open(local_file_path, 'wb') as download_path:
                 smb_connection.retrieveFile(shared_folder_name, file_path, download_path)
@@ -250,6 +255,105 @@ def truth_image(df):
         print(index)
 
         pseudo_list.append(pseudo_guid)
+
+    df["BME_Wound"] = bme_wound
+    df["Castor_Wound"] = castor_wound
+
+    # col = ["ImgCollGUID","AnatomicalLocation","fix","Castor_Wound","BME_Wound","MedicalNumber","source_path","local_path"]
+
+
+
+
+
+
+
+
+def match_image(df):
+    patient_folder = "/Users/ziweishi/Downloads/PatientData/NOLA"
+    cas_folder = "/Users/ziweishi/Downloads/DHA_Truthing"
+    sub_list = ["101-001","101-002","101-003","101-005","101-006"]
+
+
+    for s in sub_list:
+
+        df_s = df[df["MedicalNumber"]==s]
+        wound_list = df_s["burn_num"].to_list()
+        wound_index = []
+        for w in wound_list:
+            if w not in wound_index:
+                wound_index.append(w)
+        for index in wound_index:
+            df_burn_info = pd.DataFrame()
+            df_s_w = df_s[df_s["burn_num"]==index]
+            burn = df_s_w["Castor_Wound"].iloc[0]
+            guid = df_s_w["ImgCollGUID"].to_list()
+            info_subject = []
+            info_burn = []
+            info_pseudo = []
+            info_postbio = []
+            info_guid = []
+            t_burn_folder = patient_folder + "/" + s + "/" + "Burn" + str(index)
+
+            image_folder = patient_folder + "/" + s + "/" + burn
+            biopsy_folder = cas_folder + "/" + s + "/" + burn
+            for i in guid:
+                file_folder = image_folder + "/" + i
+                files = os.listdir(file_folder)
+                for f in files:
+                    if "PseudoColor" in f:
+                        info_subject.append(s)
+                        info_burn.append(index)
+                        info_pseudo.append(s + "\\" + "BURN" + str(index) + "\\" + "Pseudocolor\\" + f)
+                        info_postbio.append(s + "\\" + "BURN" + str(index) + "\\" + "Postbiopsy.JPG")
+                        info_guid.append(i)
+                        file_path = file_folder + "/" + f
+                        t_p_path = t_burn_folder + "/" + "Pseudocolor"
+                        if os.path.isdir(t_p_path) == False:
+                            os.makedirs(t_p_path)
+                        t_p_f_path = t_p_path + "/" + f
+                        shutil.copy(file_path, t_p_f_path)
+                    if "web" in f:
+                        file_path = file_folder + "/" + f
+                        t_r_path = t_burn_folder + "/" + "Reference"
+                        if os.path.isdir(t_r_path) == False:
+                            os.makedirs(t_r_path)
+                        t_r_f_path = t_r_path + "/" + f
+                        shutil.copy(file_path, t_r_f_path)
+
+            biopsy_list = os.listdir(biopsy_folder)
+            for b in biopsy_list:
+                if ".DS" not in b:
+                    biopsy_path = biopsy_folder + "/" + b
+                    t_biopsy_path = t_burn_folder + "/" + b
+                    shutil.copy(biopsy_path, t_biopsy_path)
+
+            df_burn_info["Subject"] = info_subject
+            df_burn_info["Burn"] = info_burn
+            df_burn_info["PseudocolorLocation"] = info_pseudo
+            df_burn_info["PostbiopsyLocation"] = info_postbio
+            df_burn_info["ImgCollGUID"] = info_guid
+
+
+
+            df_info_path = t_burn_folder+"/"+"Table_Burn"+str(index)+".xlsx"
+            df_burn_info.to_excel(df_info_path,index=False)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -268,6 +372,7 @@ if __name__ == "__main__":
     # download_pseudo("0814")
     # output_collection("0814")
 
-    df = pd.read_excel("/Users/ziweishi/Desktop/DHA/latest_dha.xlsx")
+    df = pd.read_excel("/Users/ziweishi/Desktop/DHA_fixed_info.xlsx")
     # copy_image(df)
-    truth_image(df)
+    # truth_image(df)
+    match_image(df)
