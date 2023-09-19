@@ -15,7 +15,6 @@ def has_element(value,element_list):
 
 
 def output_collection(sql_path):
-
     connection = pymysql.connect(
         host='127.0.0.1',
         user='root',
@@ -38,7 +37,7 @@ def output_collection(sql_path):
     collection_result = cursor.fetchall()
     df = pd.DataFrame(collection_result)
 
-    path = "../../../Desktop/DHA/latest_dha.xlsx"
+    path = "DHA_Info.xlsx"
 
     filter = ["555", "7890", "99"]
 
@@ -62,8 +61,11 @@ def output_collection(sql_path):
 
 def download_pseudo(date):
     a = input("new transfer database?")
-    df = output_collection(date)
-    folder_path = "/Users/ziweishi/Desktop/DHA/" + date + "/"
+    if a == "yes":
+        df = output_collection(sql_path="deepviewdata.sql")
+    else:
+        df = pd.read_excel("DHA_Info.xlsx")
+    folder_path = "../DHA_Images/"
     if os.path.isdir(folder_path) == False:
         os.mkdir(folder_path)
 
@@ -118,7 +120,6 @@ def copy_image(df):
 
 
     for i in source_list:
-        local_path = local_list[index]
         guid = guid_list[index]
 
         file_list = smb_connection.listPath(shared_folder_name, i)
@@ -141,7 +142,7 @@ def copy_image(df):
 
         for j in file_names:
             file_path = i+"/"+j
-            local_file_folder = "../../../Desktop/DHA/truthing_images/"+ guid+"/"
+            local_file_folder = "../DHA_images/"+ guid+"/"
             if os.path.isdir(local_file_folder) == False:
                 os.makedirs(local_file_folder)
 
@@ -175,9 +176,9 @@ def truth_image(df):
                                        is_direct_tcp=True)
     smb_connection.connect("192.168.110.252", 445)
     shared_folder_name = 'Handheld'
-    local_folder = "/Users/ziweishi/Downloads/DHA_Truthing"
+    local_folder = "../DHA_Truthing/NOLA"
 
-    download_folder = "/Users/ziweishi/Downloads/PatientData/NOLA"
+    download_folder = "../PatientData/NOLA"
     df = df[df["MedicalNumber"]!="101-004"]
     source_list = df["source_path"].to_list()
     guid_list = df["ImgCollGUID"].to_list()
@@ -269,8 +270,8 @@ def truth_image(df):
 
 
 def match_image(df):
-    patient_folder = "/Users/ziweishi/Downloads/PatientData/NOLA"
-    cas_folder = "/Users/ziweishi/Downloads/DHA_Truthing"
+    patient_folder = "../PatientData/NOLA"
+    cas_folder = "../DHA_Images/NOLA"
     sub_list = ["101-001","101-002","101-003","101-005","101-006"]
 
 
