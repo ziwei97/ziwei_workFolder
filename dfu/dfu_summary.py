@@ -6,6 +6,8 @@ import numpy as np
 import util.server_all_output as server_all_output
 
 
+
+
 def server_db_info():
     server_db = server_all_output.output_total()
     df = pd.DataFrame()
@@ -33,7 +35,7 @@ def server_db_info():
     return df
 
 
-def make_summary(cur_date):
+def make_summary():
     df = server_db_info()
     df_tra = df[df["type"]=="training"]
     tra_img_total = df_tra["MedicalNumber"].to_list()
@@ -147,9 +149,6 @@ def make_summary(cur_date):
                 cell.alignment = Alignment(horizontal='center', vertical='center')
     # 保存更改后的 Excel 文件
     workbook.save(path)
-
-
-
     return path
 
 
@@ -205,6 +204,7 @@ def match_cal(match_path):
         column_name.append(p)
         sv.append(p)
     column_name.append("Visit_Total")
+    column_name.append("Castor_vis_toal")
     df_info = pd.DataFrame(columns=column_name)
     # df_info["SubjectID"] = subject
     for i in subject:
@@ -228,6 +228,8 @@ def match_cal(match_path):
             df_info.loc[i, "Archive"] = 0
 
     df_info["not_Drawn"] = df_info["Match"]-df_info["Drawn"]-df_info["Archive"]
+
+    df_info.to_excel("../Documents/test.xlsx")
     return df_info,info,sv
 
 
@@ -246,14 +248,17 @@ def date_match_check(cur_date):
     df_tra_cas = pd.read_excel("../Documents/Castor_training.xlsx")
     df_val_cas = pd.read_excel("../Documents/Castor_validation.xlsx")
 
+
     tra_sub = df_tra_cas["SubjectID"].to_list()
     for i in tra_sub:
+        tra_sub_vis = 0
         tra_cas_sub = df_tra_cas[df_tra_cas["SubjectID"]==i]
         sta = tra_cas_sub["status"].iloc[0]
         df_tra_cal.loc[i, "Status"] = sta
         for p in sv:
             cas = tra_cas_sub[p].iloc[0]
             if type(cas) != float:
+                tra_sub_vis +=1
                 try:
                     match = tra_info[i][p]
                     df_tra_cal.loc[i, p] = match
@@ -261,20 +266,27 @@ def date_match_check(cur_date):
                     df_tra_cal.loc[i,p] = "not match"
             else:
                 df_tra_cal.loc[i, p] = np.nan
+        df_tra_cal.loc[i,"Castor_vis_toal"] = tra_sub_vis
+
+    df_tra_cal["Diff"] = df_tra_cal["Castor_vis_toal"] - df_tra_cal["Visit_Total"]
 
     df_tra_cal.reset_index(level=0, inplace=True)
     sub = ["SubjectID"]
     columns = sub + column
+    columns.append("Diff")
     df_tra_cal.columns = columns
+
 
     val_sub = df_val_cas["SubjectID"].to_list()
     for i in val_sub:
+        val_sub_vis = 0
         val_cas_sub = df_val_cas[df_val_cas["SubjectID"] == i]
         sta =val_cas_sub["status"].iloc[0]
         df_val_cal.loc[i, "Status"] = sta
         for p in sv:
             cas = val_cas_sub[p].iloc[0]
             if type(cas) != float:
+                val_sub_vis+=1
                 try:
                     match = val_info[i][p]
                     df_val_cal.loc[i, p] = match
@@ -282,13 +294,17 @@ def date_match_check(cur_date):
                     df_val_cal.loc[i, p] = "not_match"
             else:
                 df_val_cal.loc[i, p] = np.nan
+        df_val_cal.loc[i,"Castor_vis_toal"] = val_sub_vis
+
+    df_val_cal["Diff"] =df_val_cal["Castor_vis_toal"]- df_val_cal["Visit_Total"]
 
     df_val_cal.reset_index(level=0, inplace=True)
     sub = ["SubjectID"]
     columns = sub + column
+    columns.append("Diff")
     df_val_cal.columns = columns
 
-    path = make_summary(cur_date)
+    path = make_summary()
 
     df_tra_site = pd.read_excel(path, sheet_name="training_site_summary")
     df_tra_sum = pd.read_excel(path,sheet_name="training_subject_summary")
@@ -326,5 +342,5 @@ def date_match_check(cur_date):
 
 
 if __name__ =="__main__":
-    date_match_check("091523")
+    date_match_check("092023")
 
