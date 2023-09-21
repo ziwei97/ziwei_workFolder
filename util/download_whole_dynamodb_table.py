@@ -98,11 +98,11 @@ if __name__ == "__main__":
     # final = final1[["ImgCollGUID","Bucket","Status","SubjectID","PseudoColor","Assessing","Raw","Mask","Tags"]]
     # final.to_excel("/Users/ziweishi/Desktop/BURN.xlsx")
 
-    a = download_table("BURN_Master_ImageCollections")
+    a = download_table("Castor_Visit_WAUSI")
 
-    # a = a[["ImgCollGUID","phase","StudyType","Bucket","Status","SubjectID","PseudoColor","Assessing","Raw","Mask","Tags"]]
+    a = a[["SubjectID","Visit","dfu_position","debridement_method","postdeb_length","postdeb_width","postdeb_depth","postdeb_tunnel","postdeb_undermining","pre_length","pre_width","pre_depth","pre_tunnel","pre_undermining"]]
 
-    # a.to_excel("/Users/ziweishi/Desktop/dfuu.xlsx")
+    a.to_excel("/Users/ziweishi/Desktop/dfu_Castor.xlsx")
 
 
 

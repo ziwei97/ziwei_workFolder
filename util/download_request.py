@@ -37,7 +37,7 @@ def download_raw(table,raw_list,attrs,path):
     error_list=[]
     fold = path
     if os.path.isdir(fold) == False:
-        os.mkdir(fold)
+        os.makedirs(fold)
     else:
         shutil.rmtree(fold)
 
@@ -54,9 +54,9 @@ def download_raw(table,raw_list,attrs,path):
         # sub_folder = os.path.join(fold,subject)
         # if os.path.isdir(sub_folder) == False:
         #     os.mkdir(sub_folder)
-        # guid_folder = os.path.join(sub_folder, i)
-        # if os.path.isdir(guid_folder) == False:
-        #     os.mkdir(guid_folder)
+        guid_folder = os.path.join(fold, i)
+        if os.path.isdir(guid_folder) == False:
+            os.mkdir(guid_folder)
 
         # wound_folder = os.path.join(sub_folder,wound)
         # if os.path.isdir(wound_folder) == False:
@@ -90,13 +90,9 @@ def download_raw(table,raw_list,attrs,path):
                 #         s3.Bucket(name).download_file(s, str(file_path))
 
                 # else:
-                    guid_folder = os.path.join(fold,j)
-                    if os.path.isdir(guid_folder) == False:
-                        os.mkdir(guid_folder)
                     attr = get_attribute(table, i, j)
                     for s in attr:
                         file_name = s.split('/')[-1]
-
                         file_path = os.path.join(guid_folder, file_name)
                         s3.Bucket(name).download_file(str(s), str(file_path))
                         # img = cv2.imread(file_path)
@@ -133,32 +129,30 @@ if __name__ == "__main__":
     # df = df[df["SubjectID"].isin(sub_name)]
     # raw_list = df["ImgCollGUID"].to_list()
 
-    attrs=["DeviceID"]
+    attrs=["PseudoColor","Raw"]
 
-    cor = """3d0ad712-6e9c-494e-be71-9371ad0ec895
-828cf35c-d83d-483c-b6a5-e2034c6e532e
-a5683eb8-7998-4b31-afe2-754660ef54d1
-495e2767-7e4c-465e-aa14-ee2831dcae2d
-15eb17da-561a-4414-91a8-580b172739b1
-6d76832a-ed2d-4bcd-868d-bf82f4f51733
-6eb1b0b2-23e2-4359-bdbc-e6c1292e32bf
-1647e48b-de74-4b48-b2bb-b79f1ac88d41
-1666955f-0156-4785-bc72-f0ae036a2964
-4e9fb446-7a4c-41b7-9185-3f14f832ce59
-5659c7cb-81c8-475d-b772-bcc7031e0a8b
-23b0a82e-d35b-4c96-a343-8c9b2732a25c"""
+    cor = """3c53f28f-80e7-46f6-9e31-9d0080bf4868
+637f44e1-77b8-4837-a4e1-4c47b3dfb6d3
+52d101ed-c098-4e42-965d-09acd7bd8df8
+0e7d246a-6df2-4d36-99e9-fda5e4e90a2c"""
 
-    path = "/Users/ziweishi/Documents/check/"
+    path = "/Users/ziweishi/Downloads/Calibration_3D_Measurement/Large_Ulcer"
 
     raw_list = cor.split("\n")
     table_name = 'DFU_Master_ImageCollections'
     table = dynamodb.Table(table_name)
-    #
-    # download_raw(table,raw_list,attrs,path)
 
-    for i in raw_list:
-        a = get_attribute(table,i,"CreateTimeStamp")
-        print("'"+str(parse_date(a))+"'")
+    download_raw(table,raw_list,attrs,path)
+
+    # for i in raw_list:
+    #     a = get_attribute(table, i, "CreateTimeStamp")
+    #     b = get_attribute(table,i,"DeviceID")
+    #     print("'" + str(parse_date(a)) + "'")
+
+
+
+
+
 
 
 

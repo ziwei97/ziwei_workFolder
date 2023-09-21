@@ -99,4 +99,4 @@ def burn_sql_find(site_list):
 
 
 if __name__ == "__main__":
-    print(burn_sql_find({'nolaepoc': {'type': 'local'}}))
+    print(burn_sql_find({'unialab': {'type': 'local'}}))
