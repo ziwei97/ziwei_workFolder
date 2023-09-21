@@ -60,9 +60,16 @@ def output_collection(sql_path):
     col = ["ImgCollGUID", "AnatomicalLocation", "fix", "Castor_Wound", "burn_num", "BME_Wound", "MedicalNumber",
            "source_path"]
 
+
+
     if len(df_new)>0:
         df_new = df_new[col]
         df_new.to_excel(path)
+
+
+
+
+
 
     cursor.close()
     connection.close()
@@ -170,8 +177,8 @@ def download_pseudo():
 
     col = ["ImgCollGUID","AnatomicalLocation","fix","Castor_Wound","burn_num","BME_Wound","MedicalNumber","source_path"]
 
-    df_temp = df[col]
-    df_temp.to_excel("DHA_Temp.xlsx")
+    df = df [col]
+    df.to_excel("DHA_info.xlsx")
 
 
 def match_image():
