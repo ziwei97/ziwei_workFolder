@@ -357,7 +357,7 @@ def image_check(db,df,df2,site,check_path):
 
 if __name__ =="__main__":
     # local_site = ["nynw", "ocer", "whfa", "youngst", "lvrpool", "memdfu", "hilloh", "grovoh", "mentoh", "encinogho","lahdfu","rsci"]
-    check_site = [ "rsci"]
+    check_site = ["nynw", "ocer", "whfa"]
     check_list = {}
 
     site_list = refresh_sql_database(check_site)

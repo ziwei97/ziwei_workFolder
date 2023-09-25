@@ -556,6 +556,6 @@ def validation_time_table_transfer(update_date):
 
 if __name__ == "__main__":
     # a = input("Do you use the latest WAUSI Enrollment tracker file?")
-    # training_time_table_transfer("20230920tra")
-    validation_time_table_transfer("20230920val")
+    # training_time_table_transfer("20230925tra")
+    validation_time_table_transfer("20230925val")
 

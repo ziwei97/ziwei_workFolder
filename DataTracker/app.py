@@ -4,6 +4,7 @@ from config import Config
 import pymysql
 import pandas as pd
 
+
 app = Flask(__name__)
 app.config.from_object(Config)
 

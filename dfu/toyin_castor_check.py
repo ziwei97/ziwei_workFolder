@@ -5,8 +5,14 @@ import numpy as np
 from datetime import datetime
 
 
+tracker_path = "/Users/ziweishi/Library/CloudStorage/OneDrive-SharedLibraries-SpectralMD/Clinical\ -\ Enrollment\ Tracker/WAUSI\ Completion\ Tracker\ Data\ Analysis\ 4-14-2023.xlsm"
+path = tracker_path.replace("\\","")
+
+
+
 def clean_training_track(check_date):
-    toyin = pd.read_excel("../Documents/WAUSI.xlsx",sheet_name="Training Dataset")
+    global path
+    toyin = pd.read_excel(path,sheet_name="Training Dataset")
     df_toyin = pd.DataFrame()
     df_toyin["SubjectID"] = toyin["Subject ID"]
     df_toyin["status"] = toyin["Completed Study (or withdrawn/LTF)"]
@@ -103,7 +109,8 @@ def clean_training_track(check_date):
     return df_toyin,issue,sub_sta
 
 def clean_validation_track(check_date):
-    toyin = pd.read_excel("../Documents/WAUSI.xlsx",sheet_name="Validation Dataset")
+    global path
+    toyin = pd.read_excel(path,sheet_name="Validation Dataset")
     df_toyin = pd.DataFrame()
     df_toyin["SubjectID"] = toyin["Subject ID"]
     df_toyin["status"] = toyin["Completed Study (or withdrawn/LTF)"]
@@ -193,4 +200,4 @@ def clean_validation_track(check_date):
 
 
 if __name__ == "__main__":
-    clean_validation_track("20230911val")
+    clean_training_track("20230930")

@@ -22,7 +22,7 @@ def refresh_sql_database(check_list):
             print("wrong site")
     sql_info = sql_get.burn_sql_find(site_list)
     sql_path = sql_info[0]
-    b = sql_info[1]
+    b = input("refresh database?")
     for i in check_list:
         site_list[i]["sql_path"] = sql_path[i]
         if b == "yes":
@@ -99,11 +99,8 @@ def server_table_output(sql_path,site):
     og_file_path = check_path + site + "_" + date + "_collection_og.xlsx"
     df.to_excel(og_file_path)
 
-    if site == "memdfu":
-        element_list = ["000", "99","8888","77"]
-    else:
-        element_list = ["0000", "99","77"]
-        # element_list = []
+
+    element_list = ["000", "99","88","77"]
 
 
     df = df[~df["MedicalNumber"].apply(lambda x: has_element(x, element_list))]
@@ -112,11 +109,12 @@ def server_table_output(sql_path,site):
         df["MedicalNumber"] = df["MedicalNumber"].apply(lambda x: "203-" + x)
         df["MedicalNumber"] = df["MedicalNumber"].apply(
             lambda x: x.replace("-203", "-005") if "-203" in x else x)
-    if site == "lvrpool":
+    if site == "unialab":
         df["MedicalNumber"] = df["MedicalNumber"].apply(
-            lambda x: x.replace("105", "205") if "105" in x else x)
+            lambda x: x.replace("105", "105-") if "105" in x else x)
         df["MedicalNumber"] = df["MedicalNumber"].apply(
-            lambda x: x.replace("205", "205-") if "205" in x else x)
+            lambda x: "105-" + x if "105" not in x else x)
+
     if site == "encinogho":
         df["MedicalNumber"] = df["MedicalNumber"].apply(lambda x: "210-" + x if "210" not in x else x)
     if site == "ocer":

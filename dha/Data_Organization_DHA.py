@@ -1,11 +1,16 @@
 import os.path
+import os
 import shutil
 import pymysql
 import pandas as pd
 import numpy as np
-import boto3
 from smb.SMBConnection import SMBConnection
 import socket
+from decouple import config
+
+
+
+
 
 sql_path = "deepviewdata.sql"
 
@@ -19,9 +24,9 @@ def has_element(value,element_list):
 
 def output_collection(sql_path):
     connection = pymysql.connect(
-        host='127.0.0.1',
-        user='root',
-        password='szw970727',
+        host= os.environ.get('DB_HOST'),
+        user = os.environ.get('DB_USER'),
+        password=os.environ.get('DB_PASSWORD'),
         database='dha',
         cursorclass=pymysql.cursors.DictCursor
     )
@@ -255,20 +260,25 @@ def match_image():
 
 
 if __name__ == "__main__":
-    ##step 1: get latest database file to output images detail
-    # output_collection(sql_path)
+    #step 1: get latest database file to output images detail
+    output_collection(sql_path)
 
     ##step 2: download pseudocolor and reference images from 'Handheld' sharefolder
     # download_pseudo()
 
 
     #step 3 : compare device AnatomicalLocation and Casotr Biopsy wound location
-    a =  input("Are Wound Locations matched between Castor and Device?")
-    if a == "no":
-        shutil.rmtree("../../DHA_Truthing/PseudoColor_Webcam")
-        print("go to fix 'DHA_info.xlsx' column 'fix' and redo the download process")
-    else:
-        #step 4 : map biopsy images to imagecollections
-        print("start to organize data...")
-        match_image()
+    # a =  input("Are Wound Locations matched between Castor and Device?")
+    # if a == "no":
+    #     shutil.rmtree("../../DHA_Truthing/PseudoColor_Webcam")
+    #     print("go to fix 'DHA_info.xlsx' column 'fix' and redo the download process")
+    # else:
+    #     #step 4 : map biopsy images to imagecollections
+    #     print("start to organize data...")
+    #     match_image()
+
+
+
+
+
 

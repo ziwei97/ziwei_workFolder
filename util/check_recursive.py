@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 
-path = "/Users/ziweishi/Users/ziweishi/Downloads/phase3_mask"
+path = "/Volumes/epoc/DataTransfers/unialab/UNIALAB_BURN_SMD2138-013_09_25_23/SpectralView"
 
 
 guid=[]
@@ -23,24 +23,32 @@ def all_file_list(path):
             guid.append(i)
             file.append(j)
 
+folders = 0
 
 def print_files(path,list):
     lsdir = os.listdir(path)
     dirs = [i for i in lsdir if os.path.isdir(os.path.join(
         path, i))]
+    global folders
     if dirs:
         for i in dirs:
+            folders += 1
             print_files(os.path.join(path, i),list)
     files = [i for i in lsdir if os.path.isfile(os.path.join(path, i))]
     for f in files:
         a = str(f).split("/")
         b= a[-1]
         # list.append(os.path.join(path, f))
-        list.append(b)
-    return list
+        list.append(f)
+    return list,folders
 
 a = []
-list_file=print_files(path,a)
+
+result = print_files(path,a)
+list_file=result[0]
+num = result[1]
+print(num)
+
 
 
 
