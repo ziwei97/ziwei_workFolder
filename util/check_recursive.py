@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 
-path = "/Volumes/epoc/DataTransfers/unialab/UNIALAB_BURN_SMD2138-013_09_25_23/SpectralView"
+path = "/Volumes/dfu/DataTransfers/grovoh/DFU_SS/GROVOH_DFU_SMD2225-013_09_26_23/SpectralView"
 
 
 guid=[]

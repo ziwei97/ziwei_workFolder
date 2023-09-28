@@ -1,0 +1,25 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+django = "*"
+djangorestframework = "*"
+django-cors-headers = "*"
+pandas = "*"
+openpyxl = "*"
+mysql-connector = "*"
+mysql-connector-python = "*"
+paramiko = "*"
+python-decouple = "*"
+pysmb = "*"
+impacket = "*"
+python-memcached = "*"
+django-memcached = "*"
+django-redis = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"

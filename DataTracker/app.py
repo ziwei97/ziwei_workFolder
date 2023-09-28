@@ -14,18 +14,13 @@ db = pymysql.connect(
         password='szw970727',
         database="dha",
         cursorclass=pymysql.cursors.DictCursor
-    # host=app.config['localhost'],
-    # user=app.config['root'],
-    # password=app.config['szw970727'],
-    # database=app.config['dha'],
-    # cursorclass=pymysql.cursors.DictCursor
 )
 cursor = db.cursor()
 
 
 @app.route("/")
 def hello_world():
-    return render_template("index.html")
+    return render_template("homePage.html")
 
 
 @app.route("/dashboard/<study_name>")
@@ -69,7 +64,6 @@ def site_detailq():
     collection_result = cursor.fetchall()
     df = pd.DataFrame(collection_result)
     data = df.reset_index(drop=True)
-
     return render_template("site_detail.html",results=data.to_html(
         classes='table custom-style',index=False,border=2))
 

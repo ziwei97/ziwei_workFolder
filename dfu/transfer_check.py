@@ -118,6 +118,7 @@ def server_table_output(sql_path,site):
         df["MedicalNumber"] = df["MedicalNumber"].apply(lambda x: "203-" + x)
         df["MedicalNumber"] = df["MedicalNumber"].apply(
             lambda x: x.replace("-203", "-005") if "-203" in x else x)
+
     if site == "lvrpool":
         df["MedicalNumber"] = df["MedicalNumber"].apply(
             lambda x: x.replace("105", "205") if "105" in x else x)
@@ -146,6 +147,10 @@ def server_table_output(sql_path,site):
             lambda x: x.replace("208-012", "207-012") if "208-012" in x else x)
         df["MedicalNumber"] = df["MedicalNumber"].apply(lambda x: "207-" + x if "207" not in x else x)
 
+    if site == "grovoh":
+        df["MedicalNumber"] = df["MedicalNumber"].apply(
+            lambda x: x.replace("208-120", "208-020") if "208-120" in x else x)
+
     if site == "lahdfu":
         df["MedicalNumber"] = df["MedicalNumber"].apply(
             lambda x: x.replace("211-001", "211-01") if "211-001" in x else x)
@@ -154,7 +159,6 @@ def server_table_output(sql_path,site):
     if site == "rsci":
         df["MedicalNumber"] = df["MedicalNumber"].apply(
             lambda x: "292-" + x if "292-" not in x else x)
-
     if site == "rsci":
         df["MedicalNumber"] = df["MedicalNumber"].apply(
             lambda x: "292-" + x if "292-" not in x else x)
@@ -229,12 +233,9 @@ def image_check(db,df,df2,site,check_path):
                 try:
                     db_raw = db_sub["Raw"].iloc[0]
                     db_raw1 = db_raw.replace(" ", "")
-
                     db_raw1 = db_raw1.replace("Raw/Raw_", "")
                     db_raw1 = db_raw1.replace("'", "")
-
                     db_raw2 = db_raw1.strip("{}").split(",")
-
                     issue_list = []
                     for p in raw_list:
                         if p not in db_raw2:
@@ -357,7 +358,7 @@ def image_check(db,df,df2,site,check_path):
 
 if __name__ =="__main__":
     # local_site = ["nynw", "ocer", "whfa", "youngst", "lvrpool", "memdfu", "hilloh", "grovoh", "mentoh", "encinogho","lahdfu","rsci"]
-    check_site = ["nynw", "ocer", "whfa"]
+    check_site = ["nynw", "ocer", "whfa","hilloh","grovoh"]
     check_list = {}
 
     site_list = refresh_sql_database(check_site)

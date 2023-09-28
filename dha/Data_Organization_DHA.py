@@ -51,7 +51,7 @@ def output_collection(sql_path):
 
     df = df[~df["MedicalNumber"].apply(lambda x: has_element(x, filter))]
 
-    df["source_path"] = df["ImageCollFolderName"].apply(lambda x: x.replace("D:\\ImagingApp\\", "/DHA/NOLABURN/Clean_Truth_Event_NOLA_20230727/"))
+    df["source_path"] = df["ImageCollFolderName"].apply(lambda x: x.replace("D:\\ImagingApp\\", "/DHA/NOLABURN/v2_Clean_Truth_Event_NOLA_20230727/ImagingApp/"))
     df["source_path"] = df["source_path"].apply(lambda x: x.replace("\\", "/"))
 
     df_current_list = df["ImgCollGUID"].to_list()
@@ -67,14 +67,9 @@ def output_collection(sql_path):
 
 
 
-    if len(df_new)>0:
-        df_new = df_new[col]
-        df_new.to_excel(path)
 
-
-
-
-
+    df_new = df_new[col]
+    df.to_excel(path)
 
     cursor.close()
     connection.close()
@@ -257,17 +252,73 @@ def match_image():
             df_burn_info.to_excel(df_info_path,index=False)
 
 
+def data_prepare():
+    df = pd.read_excel("DHA_new_info.xlsx")
+
+    df = df[df["MedicalNumber"]=="101-004"]
+
+    my_name = socket.gethostname()
+    remote_name = 'smd-fs.SpectralMD.com.'
+    smb_connection = SMBConnection('zshi', "2ntjhy1V1Jrk", my_name, remote_name, use_ntlm_v2=True,
+                                       is_direct_tcp=True)
+    smb_connection.connect("192.168.110.252", 445)
+    shared_folder_name = 'Handheld'
+
+    download_folder = "../../DHA_Truthing/DataRequest0927"
+    source_list = df["source_path"].to_list()
+    guid_list = df["ImgCollGUID"].to_list()
+    index = 0
+
+    skin_folder = "/Users/ziweishi/Downloads/Skinlabelling/SegmentationClass/"
+
+    for i in source_list:
+        guid = guid_list[index]
+        download_guid = download_folder+"/"+guid
+        file_list = smb_connection.listPath(shared_folder_name, i)
+
+        p_filter_keywords = ["PseudoColor"]
+        p_file_names = [file.filename for file in file_list if any(keyword in file.filename for keyword in p_filter_keywords)]
+
+        r_filter_keywords = ["MSI"]
+        r_file_names = [file.filename for file in file_list if
+                        any(keyword in file.filename for keyword in r_filter_keywords) and ".gif" not in file.filename]
+        file_names = p_file_names+r_file_names
+        for j in file_names:
+            file_path = i+"/"+j
+            local_file_folder = download_guid+"/"
+            if os.path.isdir(local_file_folder) == False:
+                os.makedirs(local_file_folder)
+            pseudo_name = j.replace("Post_PseudoColor",("Post_PseudoColor_"+guid))
+            local_file_path = local_file_folder + pseudo_name
+            with open(local_file_path, 'wb') as download_path:
+                smb_connection.retrieveFile(shared_folder_name, file_path, download_path)
+        index+=1
+
+        skin_og_name1 = skin_folder+"PseudoColor_"+guid+"_142122418031.png"
+        skin_og_name2 = skin_folder+"PseudoColor_"+guid+"_142122418037.png"
+
+
+        skin_tg_name1 = download_guid+"/"+"SkinMask_"+guid+"_142122418031.png"
+        skin_tg_name2 = download_guid+"/"+"SkinMask_"+guid+"_142122418037.png"
+
+        shutil.copy(skin_og_name1,skin_tg_name1)
+        shutil.copy(skin_og_name2,skin_tg_name2)
+
+        print(index)
+
+
+
 
 
 if __name__ == "__main__":
-    #step 1: get latest database file to output images detail
+    ##step 1: get latest database file to output images detail
     output_collection(sql_path)
 
     ##step 2: download pseudocolor and reference images from 'Handheld' sharefolder
     # download_pseudo()
 
 
-    #step 3 : compare device AnatomicalLocation and Casotr Biopsy wound location
+    ## step 3 : compare device AnatomicalLocation and Casotr Biopsy wound location
     # a =  input("Are Wound Locations matched between Castor and Device?")
     # if a == "no":
     #     shutil.rmtree("../../DHA_Truthing/PseudoColor_Webcam")
@@ -276,6 +327,10 @@ if __name__ == "__main__":
     #     #step 4 : map biopsy images to imagecollections
     #     print("start to organize data...")
     #     match_image()
+
+
+    #step 4: prepare data for ds team
+    data_prepare()
 
 
 

@@ -342,5 +342,5 @@ def date_match_check(cur_date):
 
 
 if __name__ =="__main__":
-    date_match_check("092523")
+    date_match_check("092723")
 

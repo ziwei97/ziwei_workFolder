@@ -1,0 +1,119 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+.custom-select {
+  width: 100px; /* Adjust the width as needed */
+  margin: 0 auto; /* Center the select box horizontally */
+}
+
+.auto-resizing-button {
+  width: auto;
+  white-space: nowrap; 
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.truncate-cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.checkbox-cell {
+  overflow: hidden;
+}
+.wrap-cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* white-space: nowrap; */
+}
+
+/* .button-cell {
+  white-space: nowrap;
+  text-align: right;
+} */
+
+.custom-table {
+  table-layout: fixed;
+  width: 80%;
+}
+
+
+
+
+.centered-col {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 50%; /* Adjust the height as needed */
+}
+
+.centered-list {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 40%; /* Adjust the height as needed */
+}
+
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.transparent-card {
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.active {
+  background-color: #ccebc3 !important;
+}
+
+.transparent-table {
+  background-color: transparent;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.spinner {
+  animation: spin 1s infinite linear;
+}

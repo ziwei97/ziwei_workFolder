@@ -11,7 +11,7 @@ from datetime import timedelta
 from pymongo import MongoClient
 from waitress import serve
 
-app = Flask(__name__, static_folder='../react-client/build/static', template_folder="../react-client/build")
+app = Flask(__name__, template_folder="../react-client/public")
 CORS(app)
 
 client = MongoClient('mongodb', 27017)
@@ -31,11 +31,11 @@ def insertDF(df):
 
 @app.route("/")
 def hello():
-    return render_template('index.html')
+    return render_template('homePage.html')
 
 @app.errorhandler(404)   
 def not_found(e):   
-  return render_template('index.html')
+  return render_template('homePage.html')
 
 @app.route('/getReports')
 @jwt_required()
@@ -131,5 +131,5 @@ def downloadReport(filename):
 
 
 if __name__ == "__main__":
-    serve(app, host='0.0.0.0', port=5070)
-    # app.run(host='0.0.0.0', port=8000, debug=True)
+    # serve(app, host='127.0.0.1', port=5070)
+    app.run(host='127.0.0.1', port=8000, debug=True)
